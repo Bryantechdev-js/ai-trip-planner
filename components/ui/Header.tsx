@@ -1,9 +1,12 @@
 // import { Link } from 'lucide-react'
+"use client"
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 import { Button } from './button'
-
+import {
+  SignInButton,
+} from '@clerk/nextjs'
 function Header() {
     const menuOptions = [
         {
@@ -40,7 +43,11 @@ function Header() {
                 ))}
             </ul>
         </div>
-        <Button variant={"default"}>Get Started</Button>
+        <Button variant={"default"} className='cursor-pointer'>
+        <SignInButton>
+          <span>Sign In</span>
+        </SignInButton>
+        </Button>
 
     </div>
   )
