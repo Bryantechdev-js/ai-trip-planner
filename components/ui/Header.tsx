@@ -2,10 +2,13 @@
 "use client"
 import Image from 'next/image'
 import Link from 'next/link'
-import React from 'react'
+import React, { use } from 'react'
 import { Button } from './button'
 import {
+    SignIn,
   SignInButton,
+  SignOutButton,
+  useUser,
 } from '@clerk/nextjs'
 function Header() {
     const menuOptions = [
@@ -23,6 +26,9 @@ function Header() {
             name: "Contact", link: "/contact"
         }
     ]
+
+    const {user} = useUser()
+
   return (
     <div className='flex justify-between items-center px-10 py-5 shadow-md '>
       <div className="logo flex items-center gap-2 ">
@@ -43,11 +49,15 @@ function Header() {
                 ))}
             </ul>
         </div>
-        <Button variant={"default"} className='cursor-pointer'>
+        {!user ? <Button variant={"default"} className='cursor-pointer'>
         <SignInButton>
           <span>Sign In</span>
         </SignInButton>
-        </Button>
+        </Button> : <Button variant={"default"} className='cursor-pointer'>
+          <SignOutButton>
+            <span>Sign Out</span>
+          </SignOutButton>
+        </Button>}
 
     </div>
   )

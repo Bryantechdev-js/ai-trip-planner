@@ -1,9 +1,12 @@
+"use client"
 import React from 'react'
 import { Textarea } from './ui/textarea'
 import { Globe2, Landmark, Plane, Send } from 'lucide-react'
 import { Button } from './ui/button'
 import { HeroVideoDialog } from './ui/hero-video-dialog'
 import ImageCarousel from './ImageCarousel'
+import { useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 
 function Hero() {
     const suggestionList = [  
@@ -24,14 +27,24 @@ function Hero() {
             icon:<Globe2 className='text-yellow-600 h-5 w-5'/>
         }
     ]
+    const {user} = useUser();
+  const router = useRouter()
+  const onSend =()=>{
+    if(!user){
+      router.push('/sign-in')
+      return;
+    }
+}
+    // create trip planer screen
   return (
      <section className='mt-24 flex items-center justify-center'>
+
         <div className='max-w-full text-center space-y-6'>
-            <h1 className='text-xl md:text-5xl font-bold'>Hey, I'm our personal <span className='text-primary'>Trip Planner</span></h1>
+            <h1 className='text-xl md:text-5xl font-bold'>{!user ? 'Hey' : `Welcome back ${user?.firstName}`}, I'm our personal <span className='text-primary'>Trip Planner</span></h1>
             <p className='text-lg'>Tell me what you want, and I'll handle the rest: Flights, Hotels, trip planner</p>
             <div className='border rounded-2xl p-4 relative'>
                 <Textarea placeholder='Create your trip today' className='w-full h-28 border-transparent focus-visible:ring-0 shadow-none '/>
-                <Button size={"icon"} className='absolute bottom-4 right-4 bg-primary text-white hover:bg-primary/80'>
+                <Button size={"icon"} className='absolute bottom-4 right-4 bg-primary text-white hover:bg-primary/80' onClick={async()=>await onSend()}>
                     <Send className='h-4 w-4'/>
                 </Button>
             </div>

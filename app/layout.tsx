@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import {Outfit} from "next/font/google";
 import "./globals.css";
 import Header from "@/components/ui/Header";
-// import Provider from "./Provider.tsx";
-import {
-  ClerkProvider,
-} from '@clerk/nextjs'
+import { ClerkProvider } from '@clerk/nextjs'
+import { ConvexClientProvider } from "./ConvexClientProvider";
+import ClientLayout from "./ClientLayout";
 
 
 const outfit = Outfit({
@@ -32,7 +31,11 @@ export default function RootLayout({
           className={`${outfit.variable} antialiased`}
         >
           <Header />
-        {children}
+          <ConvexClientProvider>
+            <ClientLayout>
+              {children}
+            </ClientLayout>
+          </ConvexClientProvider>
         </body>
       </html>
     </ClerkProvider>
