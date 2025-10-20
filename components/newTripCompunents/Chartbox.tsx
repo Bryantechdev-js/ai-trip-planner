@@ -16,6 +16,7 @@ import TripMapUI from './TripMapUI'
 import VirtualTourUI from './VirtualTourUI'
 import FinalPlanUI from './FinalPlanUI'
 import { useTripContext } from '@/contex/TripContext'
+import { useUser } from '@clerk/nextjs'
 
 function Chartbox() {
     const { updateTripData } = useTripContext()
@@ -27,7 +28,7 @@ function Chartbox() {
     const [isSpeaking, setIsSpeaking] = useState(false);
     const[userInput,setUserInput] = useState<any>("");
     const [isGenerating,setGenerating] = useState<Boolean>(false)
-    
+    const { user } = useUser();
     const onSend = async() => {
         if(!userInput.trim()) return;
         const currentInput = userInput;
@@ -41,7 +42,8 @@ function Chartbox() {
         
         try {
             const result = await axios.post('/api/aimodel',{
-                message:[...messages,newMsg]
+                message:[...messages,newMsg],
+                userId: user?.id || "anonymous_user"
             })
             
             if (result?.data?.resp && result?.data?.ui !== undefined) {
@@ -72,11 +74,17 @@ function Chartbox() {
                 setMessage((prev:any)=>[...prev, fallbackMessage]);
                 speakText(fallbackMessage.content);
             }
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (error: any) {
+            if (error.response?.status !== 429) {
+                console.error('Error:', error);
+            }
+            const errorMessage = error.response?.status === 429 
+                ? "You've reached your daily trip limit. Please upgrade your plan or wait until tomorrow to generate another trip."
+                : 'Sorry, there was an error processing your request. Please try again.';
+            
             setMessage((prev:any)=>[...prev,{
                 role:'assistant',
-                content:'Sorry, there was an error processing your request. Please try again.',
+                content: errorMessage,
                 ui:''
             }])
         } finally {
@@ -139,7 +147,8 @@ function Chartbox() {
         
         try {
             const result = await axios.post('/api/aimodel', {
-                message: [...messages, selectionMessage]
+                message: [...messages, selectionMessage],
+                userId: user?.id || "anonymous_user"
             });
             
             if (result?.data?.resp && result?.data?.ui !== undefined) {
@@ -162,8 +171,19 @@ function Chartbox() {
                 // Speak the AI response
                 speakText(result.data.resp);
             }
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (error: any) {
+            if (error.response?.status !== 429) {
+                console.error('Error:', error);
+            }
+            const errorMessage = error.response?.status === 429 
+                ? "You've reached your daily trip limit. Please upgrade your plan or wait until tomorrow to generate another trip."
+                : 'Sorry, there was an error processing your request. Please try again.';
+            
+            setMessage((prev:any) => [...prev, {
+                role: 'assistant',
+                content: errorMessage,
+                ui: ''
+            }]);
         } finally {
             setGenerating(false);
         }
@@ -233,7 +253,13 @@ function Chartbox() {
                               <Bot className="w-4 h-4 text-white" />
                             </div>
                             <div className="flex-1">
-                              {message?.content}
+                              {message?.content?.includes("daily trip limit") ? (
+                                <span className="text-red-500 font-medium">
+                                  🚫 Daily limit reached! Please upgrade your plan or wait until tomorrow to generate another trip.
+                                </span>
+                              ) : (
+                                message?.content || message?.resp
+                              )}
                             </div>
                             <button
                               onClick={() => speakText(message.content)}

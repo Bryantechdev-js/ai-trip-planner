@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from 'openai';
+import { aj } from "../arcjet/route";
 
 const prompt = `You are an AI Trip Planner Agent specializing in creating detailed, location-specific travel experiences. Your goal is to help users plan trips by asking questions and providing accurate information about their chosen destinations.
 
@@ -67,7 +68,34 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const messages = body.message || body.messages;
+        const userId = body.userId || "anonymous_user";
         
+        // Check if this is a final plan generation (consumes 1 trip token)
+        const isFinalPlan = messages.some(msg => 
+            msg.content?.toLowerCase().includes('final') || 
+            msg.content?.toLowerCase().includes('complete') ||
+            msg.content?.toLowerCase().includes('generate plan')
+        );
+        
+        if (isFinalPlan) {
+            try {
+                const decision = await aj.protect(req, { userId, requested: 1 });
+                console.log("Arcjet decision for trip generation:", decision);
+                
+                if (decision.isDenied()) {
+                    return NextResponse.json({ 
+                        resp: "🚫 Daily trip limit reached! Please upgrade your plan to generate unlimited trips or wait until tomorrow for your next free trip.", 
+                        ui: "" 
+                    }, { status: 429 });
+                }
+            } catch (arcjetError) {
+                console.error('Arcjet error:', arcjetError);
+            }
+        }
+        
+
+  
+
         if (!messages || !Array.isArray(messages)) {
             return NextResponse.json({ 
                 resp: "I need your message to help you plan your trip.", 
@@ -100,6 +128,23 @@ export async function POST(req: NextRequest) {
         
         try {
             const parsedResponse = JSON.parse(responseContent);
+            
+            // Check if AI is generating final plan and consume token
+            if (parsedResponse.ui === 'final-plan' && !isFinalPlan) {
+                try {
+                    const decision = await aj.protect(req, { userId, requested: 1 });
+                    console.log("Arcjet decision for final plan:", decision);
+                    
+                    if (decision.isDenied()) {
+                        return NextResponse.json({ 
+                            resp: "🚫 Daily trip limit reached! Please upgrade your plan to generate unlimited trips or wait until tomorrow for your next free trip.", 
+                            ui: "" 
+                        }, { status: 429 });
+                    }
+                } catch (arcjetError) {
+                    console.error('Arcjet error:', arcjetError);
+                }
+            }
             
             // If destination is provided, fetch location data
             let locationData = null;
