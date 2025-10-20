@@ -6,7 +6,16 @@ export default defineSchema({
         name:v.string(),
         email:v.string(), 
         imageUrl:v.string(),
-        subscription:v.optional(v.string())
+        subscription:v.optional(v.string()),
+        subscriptionDueDate: v.optional(v.number()),
+        subscriptionStartDate: v.optional(v.number()),
+        paymentHistory: v.optional(v.array(v.object({
+            planId: v.string(),
+            amount: v.string(),
+            currency: v.string(),
+            paymentDate: v.number(),
+            status: v.string()
+        })))
     }),
     
     TripTable: defineTable({

@@ -78,24 +78,19 @@ const TripGalleryUI = () => {
     return cats[Math.floor(Math.random() * cats.length)]
   }
 
-  const getPlaceholderImages = (): MediaItem[] => [
-    {
-      id: 1,
-      url: `https://source.unsplash.com/800x600/?${encodeURIComponent(tripData.destination || 'travel')},landmark`,
-      thumb: `https://source.unsplash.com/400x300/?${encodeURIComponent(tripData.destination || 'travel')},landmark`,
-      alt: `${tripData.destination} landmark`,
-      category: 'Landmarks',
-      likes: 1234
-    },
-    {
-      id: 2,
-      url: `https://source.unsplash.com/800x600/?${encodeURIComponent(tripData.destination || 'travel')},city`,
-      thumb: `https://source.unsplash.com/400x300/?${encodeURIComponent(tripData.destination || 'travel')},city`,
-      alt: `${tripData.destination} city view`,
-      category: 'Activities',
-      likes: 987
-    }
-  ]
+  const getPlaceholderImages = (): MediaItem[] => {
+    const categories = ['landmark', 'city', 'culture', 'architecture', 'tourism', 'nature']
+    return categories.map((category, index) => ({
+      id: index + 1,
+      url: `https://source.unsplash.com/1200x800/?${encodeURIComponent(tripData.destination || 'travel')},${category}`,
+      thumb: `https://source.unsplash.com/600x400/?${encodeURIComponent(tripData.destination || 'travel')},${category}`,
+      alt: `${tripData.destination} ${category}`,
+      category: category.charAt(0).toUpperCase() + category.slice(1),
+      likes: Math.floor(Math.random() * 2000) + 100,
+      photographer: 'Unsplash Community',
+      title: `${tripData.destination} ${category.charAt(0).toUpperCase() + category.slice(1)}`
+    }))
+  }
 
   const currentMedia = mediaType === 'images' ? images : videos
   const filteredMedia = activeCategory === 'All' 
@@ -174,9 +169,18 @@ const TripGalleryUI = () => {
       )}
 
       {!loading && filteredMedia.length === 0 && (
-        <div className="text-center py-8">
-          <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No {mediaType} available for this destination</p>
+        <div className="text-center py-12">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Camera className="w-10 h-10 text-gray-400" />
+          </div>
+          <h4 className="text-lg font-medium text-gray-700 mb-2">No {mediaType} found</h4>
+          <p className="text-gray-500 mb-4">We couldn't find any {mediaType} for {tripData.destination}</p>
+          <button 
+            onClick={fetchMediaContent}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       )}
 
@@ -189,15 +193,25 @@ const TripGalleryUI = () => {
                 <img 
                   src={filteredMedia[selectedImage]?.url} 
                   alt={filteredMedia[selectedImage]?.alt}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-opacity duration-300"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = `https://source.unsplash.com/800x600/?${encodeURIComponent(tripData.destination || 'travel')}`;
+                    target.src = `https://source.unsplash.com/1200x800/?${encodeURIComponent(tripData.destination || 'travel')},landmark`;
                   }}
+                  onLoad={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.opacity = '1';
+                  }}
+                  style={{ opacity: 0 }}
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-red-400 to-purple-500 flex items-center justify-center">
-                  <Play className="w-16 h-16 text-white/70" />
+                <div className="w-full h-full bg-gradient-to-br from-red-400 to-purple-500 flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-black/20"></div>
+                  <div className="relative z-10 text-center">
+                    <Play className="w-16 h-16 text-white/90 mx-auto mb-2" />
+                    <p className="text-white/80 text-sm font-medium">Video Preview</p>
+                    <p className="text-white/60 text-xs">{filteredMedia[selectedImage]?.title}</p>
+                  </div>
                 </div>
               )}
           
@@ -271,15 +285,17 @@ const TripGalleryUI = () => {
                   <img 
                     src={item.thumb} 
                     alt={item.alt}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-all duration-200 hover:scale-105"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = `https://source.unsplash.com/400x300/?${encodeURIComponent(tripData.destination || 'travel')}`;
+                      target.src = `https://source.unsplash.com/600x400/?${encodeURIComponent(tripData.destination || 'travel')},landmark`;
                     }}
+                    loading="lazy"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-red-300 to-purple-400 flex items-center justify-center">
-                    <Play className="w-6 h-6 text-white/70" />
+                  <div className="w-full h-full bg-gradient-to-br from-red-300 to-purple-400 flex items-center justify-center relative">
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    <Play className="w-6 h-6 text-white/90 relative z-10" />
                   </div>
                 )}
               </div>
@@ -309,11 +325,20 @@ const TripGalleryUI = () => {
               <img 
                 src={filteredMedia[selectedImage]?.url} 
                 alt={filteredMedia[selectedImage]?.alt}
-                className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+                className="w-full h-auto max-h-[80vh] object-contain rounded-lg shadow-2xl"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = `https://source.unsplash.com/1200x800/?${encodeURIComponent(tripData.destination || 'travel')},landmark`;
+                }}
               />
             ) : (
-              <div className="aspect-video bg-gradient-to-br from-red-400 to-purple-500 rounded-lg flex items-center justify-center">
-                <Play className="w-24 h-24 text-white/50" />
+              <div className="aspect-video bg-gradient-to-br from-red-400 to-purple-500 rounded-lg flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/30"></div>
+                <div className="relative z-10 text-center">
+                  <Play className="w-24 h-24 text-white/80 mx-auto mb-4" />
+                  <p className="text-white text-lg font-medium">{filteredMedia[selectedImage]?.title}</p>
+                  <p className="text-white/70 text-sm">Click to watch on external platform</p>
+                </div>
               </div>
             )}
           </div>

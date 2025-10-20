@@ -106,6 +106,10 @@ const VirtualTourUI = () => {
   const openFullscreen = () => {
     if (locations[currentLocation]?.streetViewUrl && locations[currentLocation].streetViewUrl !== '#') {
       window.open(locations[currentLocation].streetViewUrl, '_blank')
+    } else {
+      // Fallback to Google Maps search
+      const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(tripData.destination)}/@?api=1&map_action=pano`
+      window.open(searchUrl, '_blank')
     }
   }
 
@@ -137,21 +141,28 @@ const VirtualTourUI = () => {
         <div className="space-y-4">
           <div className="aspect-video bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg overflow-hidden relative">
             {locations.length > 0 ? (
-              <iframe
-                src={locations[currentLocation]?.panoramaUrl}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title={`Virtual tour of ${locations[currentLocation]?.name}`}
-              />
+              <div className="relative w-full h-full">
+                <iframe
+                  src={locations[currentLocation]?.panoramaUrl}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`Virtual tour of ${locations[currentLocation]?.name}`}
+                  className="rounded-lg"
+                />
+                <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                  360° View
+                </div>
+              </div>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
                 <div className="text-center">
-                  <div className="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-purple-600">Loading virtual tour...</p>
+                  <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-purple-600 font-medium">Loading virtual tour...</p>
+                  <p className="text-purple-500 text-sm mt-1">Preparing 360° experience</p>
                 </div>
               </div>
             )}
@@ -224,37 +235,65 @@ const VirtualTourUI = () => {
 
           <div className="space-y-3">
             <h4 className="font-semibold text-gray-800">Tour Locations</h4>
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-48 overflow-y-auto">
               {locations.map((location, idx) => (
                 <div 
                   key={idx} 
                   onClick={() => setCurrentLocation(idx)}
-                  className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
-                    idx === currentLocation ? 'bg-purple-100' : 'hover:bg-gray-50'
+                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                    idx === currentLocation 
+                      ? 'bg-purple-100 border border-purple-200 shadow-sm' 
+                      : 'hover:bg-gray-50 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-lg">🏛️</span>
-                    <span className="text-sm font-medium text-gray-700">{location.name}</span>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                      idx === currentLocation ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700 block">{location.name}</span>
+                      <span className="text-xs text-gray-500">360° Street View</span>
+                    </div>
                   </div>
-                  <span className="text-xs text-gray-500">360° View</span>
+                  {idx === currentLocation && (
+                    <div className="w-2 h-2 bg-purple-600 rounded-full animate-pulse"></div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Camera className="w-4 h-4 text-blue-600" />
-              <span className="font-medium text-blue-800">Virtual Tour Features</span>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                <Camera className="w-3 h-3 text-white" />
+              </div>
+              <span className="font-semibold text-blue-800">Virtual Tour Features</span>
             </div>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Real Google Street View integration</li>
-              <li>• 360° panoramic exploration</li>
-              <li>• Auto-play tour mode available</li>
-              <li>• Full-screen viewing option</li>
-              <li>• Multiple viewpoints per destination</li>
-            </ul>
+            <div className="grid grid-cols-1 gap-2">
+              <div className="flex items-center gap-2 text-sm text-blue-700">
+                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                <span>Real Google Street View integration</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-blue-700">
+                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                <span>360° panoramic exploration</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-blue-700">
+                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                <span>Auto-play tour mode available</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-blue-700">
+                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                <span>Full-screen viewing option</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-blue-700">
+                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                <span>Multiple viewpoints per destination</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,150 +1,213 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(req: NextRequest) {
-    try {
-        const { destination, type } = await req.json();
-        
-        if (!destination) {
-            return NextResponse.json({ error: "Destination is required" }, { status: 400 });
-        }
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY || 'YOUR_PEXELS_API_KEY'
+const PIXABAY_API_KEY = process.env.PIXABAY_API_KEY || 'YOUR_PIXABAY_API_KEY'
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'YOUR_UNSPLASH_ACCESS_KEY'
 
-        let data = [];
+export async function POST(request: NextRequest) {
+  try {
+    const { destination, type = 'images' } = await request.json()
 
-        if (type === 'images') {
-            // Use Unsplash free API with enhanced fallback
-            data = await fetchUnsplashImages(destination);
-        } else if (type === 'videos') {
-            // Use YouTube API with enhanced fallback
-            data = await fetchVideoContent(destination);
-        } else {
-            // Return both images and videos
-            const [images, videos] = await Promise.all([
-                fetchUnsplashImages(destination),
-                fetchVideoContent(destination)
-            ]);
-            data = { images, videos };
-        }
-
-        return NextResponse.json({ data });
-    } catch (error) {
-        console.error('Media search error:', error);
-        return NextResponse.json({ error: "Failed to fetch media" }, { status: 500 });
+    if (!destination) {
+      return NextResponse.json({ error: 'Destination is required' }, { status: 400 })
     }
+
+    let data = []
+
+    if (type === 'images') {
+      data = await fetchImages(destination)
+    } else if (type === 'videos') {
+      data = await fetchVideos(destination)
+    }
+
+    return NextResponse.json({ data, success: true })
+  } catch (error) {
+    console.error('Media search error:', error)
+    return NextResponse.json({ error: 'Failed to fetch media' }, { status: 500 })
+  }
 }
 
-async function fetchUnsplashImages(destination: string) {
-    try {
-        // Free Unsplash API - requires signup but has generous free tier
-        const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || 'demo_key';
-        
-        const response = await fetch(
-            `https://api.unsplash.com/search/photos?query=${encodeURIComponent(destination)}&per_page=12&client_id=${UNSPLASH_ACCESS_KEY}`
-        );
-        
-        if (response.ok) {
-            const result = await response.json();
-            return result.results.map((img: any) => ({
-                id: img.id,
-                url: img.urls.regular,
-                thumb: img.urls.thumb,
-                alt: img.alt_description || destination,
-                photographer: img.user.name,
-                photographerUrl: img.user.links.html
-            }));
-        }
-    } catch (error) {
-        console.error('Unsplash API error:', error);
-    }
-    
-    // Enhanced fallback with multiple image sources and categories
-    const imageCategories = [
-        'travel,landmark', 'city,architecture', 'landscape,nature', 'culture,people',
-        'food,cuisine', 'street,urban', 'museum,art', 'sunset,scenic',
-        'market,shopping', 'festival,celebration', 'beach,coast', 'mountain,view'
-    ];
-    
-    return imageCategories.map((category, index) => ({
-        id: index + 1,
-        url: `https://source.unsplash.com/800x600/?${encodeURIComponent(destination)},${category}`,
-        thumb: `https://source.unsplash.com/400x300/?${encodeURIComponent(destination)},${category}`,
-        alt: `${destination} ${category.split(',')[0]}`,
-        photographer: 'Unsplash Community',
-        photographerUrl: 'https://unsplash.com',
-        title: `${destination} ${category.split(',')[0].charAt(0).toUpperCase() + category.split(',')[0].slice(1)}`
-    }));
-}
+async function fetchImages(destination: string) {
+  const queries = [
+    `${destination} landmark`,
+    `${destination} city`,
+    `${destination} tourism`,
+    `${destination} architecture`,
+    `${destination} culture`,
+    `${destination} travel`
+  ]
 
-async function fetchVideoContent(destination: string) {
+  const allImages = []
+
+  // Try Unsplash first (higher quality images)
+  try {
+    const unsplashResponse = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(destination)}&per_page=15&orientation=landscape`,
+      {
+        headers: {
+          'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
+        }
+      }
+    )
+
+    if (unsplashResponse.ok) {
+      const unsplashData = await unsplashResponse.json()
+      const unsplashImages = unsplashData.results?.map((photo: any) => ({
+        id: `unsplash_${photo.id}`,
+        url: photo.urls.regular,
+        thumb: photo.urls.small,
+        alt: photo.alt_description || `${destination} image`,
+        photographer: photo.user.name,
+        photographerUrl: photo.user.links.html,
+        source: 'Unsplash',
+        title: photo.description || photo.alt_description
+      })) || []
+      
+      allImages.push(...unsplashImages)
+    }
+  } catch (error) {
+    console.error('Error fetching Unsplash images:', error)
+  }
+
+  // If we have enough images from Unsplash, return them
+  if (allImages.length >= 8) {
+    return allImages.slice(0, 12)
+  }
+
+  // Otherwise, try other sources
+  for (const query of queries.slice(0, 3)) { // Limit queries to avoid rate limits
     try {
-        // Try to get YouTube videos using YouTube Data API if available
-        const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-        
-        if (YOUTUBE_API_KEY) {
-            const searchQueries = [
-                `${destination} travel guide 4k`,
-                `${destination} walking tour`,
-                `${destination} attractions documentary`,
-                `${destination} food culture`,
-                `${destination} virtual tour 360`
-            ];
-            
-            const videoPromises = searchQueries.map(async (query, index) => {
-                try {
-                    const response = await fetch(
-                        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=1&key=${YOUTUBE_API_KEY}`
-                    );
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        const video = data.items[0];
-                        
-                        if (video) {
-                            return {
-                                id: video.id.videoId,
-                                url: `https://www.youtube.com/embed/${video.id.videoId}`,
-                                thumb: video.snippet.thumbnails.medium.url,
-                                title: video.snippet.title,
-                                source: 'YouTube',
-                                alt: video.snippet.description
-                            };
-                        }
-                    }
-                } catch (error) {
-                    console.error(`Error fetching video for query "${query}":`, error);
-                }
-                
-                return null;
-            });
-            
-            const videos = await Promise.all(videoPromises);
-            const validVideos = videos.filter(video => video !== null);
-            
-            if (validVideos.length > 0) {
-                return validVideos;
+      // Try Pexels
+      if (PEXELS_API_KEY !== 'YOUR_PEXELS_API_KEY') {
+        const pexelsResponse = await fetch(
+          `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=4&orientation=landscape`,
+          {
+            headers: {
+              'Authorization': PEXELS_API_KEY
             }
+          }
+        )
+
+        if (pexelsResponse.ok) {
+          const pexelsData = await pexelsResponse.json()
+          const pexelsImages = pexelsData.photos?.map((photo: any) => ({
+            id: `pexels_${photo.id}`,
+            url: photo.src.large,
+            thumb: photo.src.medium,
+            alt: photo.alt || `${destination} image`,
+            photographer: photo.photographer,
+            photographerUrl: photo.photographer_url,
+            source: 'Pexels',
+            title: photo.alt
+          })) || []
+          
+          allImages.push(...pexelsImages)
         }
+      }
+
+      // Try Pixabay if still need more images
+      if (allImages.length < 8 && PIXABAY_API_KEY !== 'YOUR_PIXABAY_API_KEY') {
+        const pixabayResponse = await fetch(
+          `https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(query)}&image_type=photo&orientation=horizontal&category=places&per_page=4&safesearch=true`
+        )
+
+        if (pixabayResponse.ok) {
+          const pixabayData = await pixabayResponse.json()
+          const pixabayImages = pixabayData.hits?.map((hit: any) => ({
+            id: `pixabay_${hit.id}`,
+            url: hit.largeImageURL,
+            thumb: hit.webformatURL,
+            alt: hit.tags || `${destination} image`,
+            photographer: hit.user,
+            photographerUrl: `https://pixabay.com/users/${hit.user}-${hit.user_id}/`,
+            source: 'Pixabay',
+            title: hit.tags
+          })) || []
+          
+          allImages.push(...pixabayImages)
+        }
+      }
     } catch (error) {
-        console.error('YouTube API error:', error);
+      console.error(`Error fetching images for ${query}:`, error)
     }
-    
-    // Enhanced fallback with better video suggestions
-    const videoTypes = [
-        { type: 'travel guide', description: 'Complete travel guide and tips' },
-        { type: 'walking tour', description: 'Virtual walking tour experience' },
-        { type: 'attractions', description: 'Top attractions and landmarks' },
-        { type: 'food culture', description: 'Local cuisine and food culture' },
-        { type: 'virtual tour 360', description: '360° virtual reality tour' },
-        { type: 'documentary', description: 'Documentary and history' },
-        { type: 'drone footage', description: 'Aerial drone footage' },
-        { type: 'time lapse', description: 'Beautiful time-lapse videos' }
-    ];
-    
-    return videoTypes.map((video, index) => ({
-        id: index + 1,
-        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(destination + ' ' + video.type)}`,
-        thumb: `https://source.unsplash.com/400x300/?${encodeURIComponent(destination)},${video.type.split(' ')[0]}`,
-        title: `${destination} ${video.type.charAt(0).toUpperCase() + video.type.slice(1)}`,
-        source: 'YouTube',
-        alt: video.description
-    }));
+  }
+
+  // If still no real images found, return high-quality fallbacks
+  if (allImages.length === 0) {
+    return getFallbackImages(destination)
+  }
+
+  return allImages.slice(0, 12) // Limit to 12 images
+}
+
+async function fetchVideos(destination: string) {
+  const allVideos = []
+
+  try {
+    if (PEXELS_API_KEY !== 'YOUR_PEXELS_API_KEY') {
+      const pexelsResponse = await fetch(
+        `https://api.pexels.com/videos/search?query=${encodeURIComponent(destination)}&per_page=8&orientation=landscape`,
+        {
+          headers: {
+            'Authorization': PEXELS_API_KEY
+          }
+        }
+      )
+
+      if (pexelsResponse.ok) {
+        const data = await pexelsResponse.json()
+        const pexelsVideos = data.videos?.map((video: any) => ({
+          id: `video_${video.id}`,
+          url: video.video_files.find((file: any) => file.quality === 'hd')?.link || video.video_files[0]?.link || '#',
+          thumb: video.image,
+          alt: `${destination} video`,
+          photographer: video.user?.name || 'Unknown',
+          photographerUrl: video.user?.url || '#',
+          source: 'Pexels',
+          title: `${destination} Video Tour`,
+          duration: video.duration || 30
+        })) || []
+        
+        allVideos.push(...pexelsVideos)
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching videos:', error)
+  }
+
+  // If no real videos found, return fallbacks
+  if (allVideos.length === 0) {
+    return getFallbackVideos(destination)
+  }
+
+  return allVideos.slice(0, 8)
+}
+
+function getFallbackImages(destination: string) {
+  const categories = ['landmark', 'city', 'culture', 'architecture', 'tourism', 'street', 'nature', 'food', 'market', 'sunset']
+  return categories.map((category, index) => ({
+    id: `fallback_${index}`,
+    url: `https://source.unsplash.com/1200x800/?${encodeURIComponent(destination)},${category}`,
+    thumb: `https://source.unsplash.com/600x400/?${encodeURIComponent(destination)},${category}`,
+    alt: `${destination} ${category}`,
+    photographer: 'Unsplash Community',
+    photographerUrl: 'https://unsplash.com',
+    source: 'Unsplash',
+    title: `${destination} ${category.charAt(0).toUpperCase() + category.slice(1)}`
+  }))
+}
+
+function getFallbackVideos(destination: string) {
+  const videoTypes = ['tour', 'drone', 'timelapse', 'street']
+  return videoTypes.map((type, index) => ({
+    id: `fallback_video_${index}`,
+    url: `https://www.youtube.com/results?search_query=${encodeURIComponent(destination + ' ' + type + ' 4k video')}`,
+    thumb: `https://source.unsplash.com/800x600/?${encodeURIComponent(destination)},${type}`,
+    alt: `${destination} ${type} video`,
+    photographer: 'YouTube Community',
+    photographerUrl: '#',
+    source: 'YouTube',
+    title: `${destination} ${type.charAt(0).toUpperCase() + type.slice(1)} Video`,
+    duration: 180
+  }))
 }

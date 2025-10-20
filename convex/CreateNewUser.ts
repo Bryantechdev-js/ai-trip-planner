@@ -1,6 +1,5 @@
-import { mutation } from "@/convex/_generated/server";
+import { mutation, query } from "@/convex/_generated/server";
 import { v } from "convex/values";
-import { create } from "domain";
 
 export const CreateNewUser = mutation({
     args:{
@@ -25,3 +24,56 @@ export const CreateNewUser = mutation({
         return existingUser[0]
     }
 })
+
+export const getUserById = query({
+    args: {
+        userId: v.string()
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db.query("UserTable")
+            .filter(q => q.eq(q.field("email"), args.userId))
+            .first();
+        return user;
+    }
+});
+
+export const updateUserSubscription = mutation({
+    args: {
+        userId: v.string(),
+        subscription: v.string(),
+        dueDate: v.number(),
+        paymentDetails: v.optional(v.object({
+            planId: v.string(),
+            amount: v.string(),
+            currency: v.string(),
+            status: v.string()
+        }))
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db.query("UserTable")
+            .filter(q => q.eq(q.field("email"), args.userId))
+            .first();
+            
+        if (!user) {
+            throw new Error("User not found");
+        }
+        
+        const updateData: any = {
+            subscription: args.subscription,
+            subscriptionDueDate: args.dueDate,
+            subscriptionStartDate: Date.now()
+        };
+        
+        if (args.paymentDetails) {
+            const paymentHistory = user.paymentHistory || [];
+            paymentHistory.push({
+                ...args.paymentDetails,
+                paymentDate: Date.now()
+            });
+            updateData.paymentHistory = paymentHistory;
+        }
+        
+        await ctx.db.patch(user._id, updateData);
+        return await ctx.db.get(user._id);
+    }
+});
