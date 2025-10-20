@@ -2,8 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  video: {
-    domains: ['www.pexels.com'],
+  images: {
+    domains: ['www.pexels.com', 'source.unsplash.com'],
   },
 };
 

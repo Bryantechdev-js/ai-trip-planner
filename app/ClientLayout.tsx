@@ -3,16 +3,15 @@
 import { useUser } from '@clerk/nextjs'
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useEffect } from "react"
+import { useContext, useEffect, useState } from "react"
+import { UserDetailContext } from '@/contex/UserDetailContext';
+import { TripProvider } from '@/contex/TripContext';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  const [userDetails,setUserDetails] = useState<any>({})
   const CreateUser = useMutation(api.CreateNewUser.CreateNewUser)
   const { user } = useUser()
   
-  useEffect(() => {
-    user && CreateNewUser()
-  }, [user])
-    
   const CreateNewUser = async () => {
     if (user) {
       const result = await CreateUser({
@@ -22,6 +21,21 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       })
     }
   }
+  
+  useEffect(() => {
+    user && CreateNewUser()
+    setUserDetails(user)
+  }, [user])
 
-  return <>{children}</>
+  return (
+    <UserDetailContext.Provider value={{userDetails,setUserDetails}}>
+      <TripProvider>
+        {children}
+      </TripProvider>
+    </UserDetailContext.Provider>
+  )
+}
+
+export const useUserDetail =()=>{
+  return useContext(UserDetailContext)
 }

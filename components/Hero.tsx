@@ -7,6 +7,7 @@ import { HeroVideoDialog } from './ui/hero-video-dialog'
 import ImageCarousel from './ImageCarousel'
 import { useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
+import { IconSquareRoundedLetterJ } from '@tabler/icons-react'
 
 function Hero() {
     const suggestionList = [  
@@ -34,25 +35,30 @@ function Hero() {
       router.push('/sign-in')
       return;
     }
+    router.push("/create-trip")
 }
     // create trip planer screen
   return (
-     <section className='mt-24 flex items-center justify-center'>
+     <section className='mt-12 sm:mt-24 flex items-center justify-center px-4'>
 
-        <div className='max-w-full text-center space-y-6'>
-            <h1 className='text-xl md:text-5xl font-bold'>{!user ? 'Hey' : `Welcome back ${user?.firstName}`}, I'm our personal <span className='text-primary'>Trip Planner</span></h1>
-            <p className='text-lg'>Tell me what you want, and I'll handle the rest: Flights, Hotels, trip planner</p>
-            <div className='border rounded-2xl p-4 relative'>
-                <Textarea placeholder='Create your trip today' className='w-full h-28 border-transparent focus-visible:ring-0 shadow-none '/>
-                <Button size={"icon"} className='absolute bottom-4 right-4 bg-primary text-white hover:bg-primary/80' onClick={async()=>await onSend()}>
-                    <Send className='h-4 w-4'/>
+        <div className='max-w-full text-center space-y-4 sm:space-y-6 animate-fadeIn'>
+            <h1 className='text-2xl sm:text-3xl md:text-5xl font-bold leading-tight'>{!user ? 'Hey' : `Welcome back ${user?.firstName}`}, I'm your personal <span className='text-primary'>Trip Planner</span></h1>
+            <p className='text-base sm:text-lg max-w-2xl mx-auto'>Tell me what you want, and I'll handle the rest: Flights, Hotels, trip planner</p>
+            <div className='border rounded-2xl p-3 sm:p-4 relative max-w-2xl mx-auto transform hover:scale-105 transition-transform'>
+                <Textarea placeholder='Create your trip today - Tell me where you want to go!' className='w-full h-20 sm:h-28 border-transparent focus-visible:ring-0 shadow-none resize-none text-sm sm:text-base'/>
+                <Button size={"icon"} className='absolute bottom-3 sm:bottom-4 right-3 sm:right-4 bg-primary text-white hover:bg-primary/80 transform hover:scale-110 transition-transform' onClick={async()=>await onSend()}>
+                    <Send className='h-3 sm:h-4 w-3 sm:w-4'/>
                 </Button>
             </div>
             {/* suggestion list */}
             {suggestionList.map((suggestion,index) => (
-                <div key={index} className='inline-flex items-center gap-2 border px-4 py-2 rounded-full hover:bg-primary hover:text-white hover:scale-105 transition cursor-pointer md:mx-2'>
+                <div 
+                    key={index} 
+                    onClick={onSend}
+                    className='inline-flex items-center gap-2 border px-4 py-2 rounded-full hover:bg-primary hover:text-white hover:scale-105 transition cursor-pointer md:mx-2'
+                >
                     {suggestion.icon}
-                    <h2 className='text-xl md:text-2xl'>{suggestion.title}</h2>
+                    <h2 className='text-xs sm:text-sm md:text-base'>{suggestion.title}</h2>
                 </div>
             ))}
 

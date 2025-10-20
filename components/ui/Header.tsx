@@ -49,15 +49,24 @@ function Header() {
                 ))}
             </ul>
         </div>
+        <div className="seprator flex space-x-10">
         {!user ? <Button variant={"default"} className='cursor-pointer'>
         <SignInButton>
           <span>Sign In</span>
         </SignInButton>
         </Button> : <Button variant={"default"} className='cursor-pointer'>
-          <SignOutButton>
-            <span>Sign Out</span>
-          </SignOutButton>
+            <SignOutButton>
+                <span>Sign Out</span>
+            </SignOutButton>
         </Button>}
+        {user && (
+        <Link href={"/create-trip"}>
+            <Button variant={"default"} className="bg-primary cursor-pointer">
+                Create new Trip
+            </Button>
+        </Link>
+        )}
+        </div>
 
     </div>
   )
