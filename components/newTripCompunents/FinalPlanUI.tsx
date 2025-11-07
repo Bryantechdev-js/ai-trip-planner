@@ -74,6 +74,81 @@ const FinalPlanUI = () => {
         throw new Error(rateLimitData.error || 'Rate limit check failed')
       }
       
+      // Fetch real media content for the trip
+      let galleryImages = []
+      let videos = []
+      
+      try {
+        // Fetch real images
+        const imageResponse = await fetch('/api/media-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            destination: tripData.destination, 
+            type: 'images' 
+          })
+        })
+        
+        if (imageResponse.ok) {
+          const imageResult = await imageResponse.json()
+          if (imageResult.data && imageResult.data.length > 0) {
+            galleryImages = imageResult.data.slice(0, 12).map((img: any) => ({
+              url: img.url,
+              thumbnail: img.thumb,
+              title: img.title || `${tripData.destination} - ${img.category || 'Travel'}`,
+              category: img.category || 'travel'
+            }))
+          }
+        }
+        
+        // Fetch real videos
+        const videoResponse = await fetch('/api/media-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            destination: tripData.destination, 
+            type: 'videos' 
+          })
+        })
+        
+        if (videoResponse.ok) {
+          const videoResult = await videoResponse.json()
+          if (videoResult.data && videoResult.data.length > 0) {
+            videos = videoResult.data.slice(0, 8).map((vid: any) => ({
+              url: vid.url,
+              thumbnail: vid.thumb,
+              title: vid.title || `${tripData.destination} Video Tour`,
+              duration: vid.duration ? `${vid.duration}s` : '15-30 min',
+              type: vid.category || 'tour'
+            }))
+          }
+        }
+      } catch (mediaError) {
+        console.error('Error fetching media:', mediaError)
+      }
+      
+      // Fallback to generated content if no real media found
+      if (galleryImages.length === 0) {
+        const categories = ['landmarks', 'culture', 'food', 'nature', 'architecture', 'people']
+        galleryImages = categories.map((category, index) => ({
+          url: `https://source.unsplash.com/800x600/?${encodeURIComponent(tripData.destination)},${category},travel`,
+          thumbnail: `https://source.unsplash.com/400x300/?${encodeURIComponent(tripData.destination)},${category}`,
+          title: `${tripData.destination} - ${category.charAt(0).toUpperCase() + category.slice(1)}`,
+          category
+        }))
+      }
+      
+      if (videos.length === 0) {
+        const videoTypes = ['tour', 'culture', 'food', 'attractions']
+        videos = videoTypes.map((type, index) => ({
+          url: `https://www.youtube.com/results?search_query=${encodeURIComponent(tripData.destination + ' ' + type + ' 4k')}`,
+          thumbnail: `https://source.unsplash.com/640x360/?${encodeURIComponent(tripData.destination)},${type}`,
+          title: `${tripData.destination} ${type.charAt(0).toUpperCase() + type.slice(1)} Experience`,
+          duration: '15-30 min',
+          type
+        }))
+      }
+      
       // Proceed with trip creation if rate limit allows
       const tripId = await createTrip({
         userId: user.id,
@@ -97,7 +172,10 @@ const FinalPlanUI = () => {
             locations: []
           }
         },
-        isPublic
+        isPublic,
+        coverImage: destinationImage || (galleryImages.length > 0 ? galleryImages[0].url : `https://source.unsplash.com/1200x800/?${encodeURIComponent(tripData.destination)},travel,landmark`),
+        galleryImages,
+        videos
       })
       setSavedTripId(tripId)
     } catch (error) {
@@ -214,7 +292,7 @@ const FinalPlanUI = () => {
                     <span className="text-gray-600 font-medium">Duration</span>
                     <Clock className="w-4 h-4 text-green-500" />
                   </div>
-                  <span className="text-lg font-bold text-gray-800">{tripData.duration || 0} Days</span>
+                  <span className="text-lg font-bold text-gray-800">{tripData.duration > 0 ? `${tripData.duration} Days` : 'Not specified'}</span>
                 </div>
                 
                 <div className="bg-white rounded-xl p-4 shadow-sm border border-blue-100">
@@ -258,7 +336,7 @@ const FinalPlanUI = () => {
                 <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
                   <Calendar className="w-4 h-4 text-white" />
                 </div>
-                Daily Itinerary
+                Daily Itinerary ({tripData.duration && tripData.duration > 0 ? `${tripData.duration} Days` : '7 Days'})
               </h4>
               
               <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -270,7 +348,7 @@ const FinalPlanUI = () => {
                   { day: 5, activity: "Adventure Activities", icon: "🎯", time: "Full Day" },
                   { day: 6, activity: "Relaxation & Shopping", icon: "🛍️", time: "Full Day" },
                   { day: 7, activity: "Departure", icon: "🎒", time: "Morning" }
-                ].slice(0, tripData.duration || 7).map((item, index) => (
+                ].slice(0, tripData.duration && tripData.duration > 0 ? tripData.duration : 7).map((item, index) => (
                   <div key={item.day} className={`flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm border border-purple-100 transition-all duration-300 hover:shadow-md hover:scale-[1.02] ${index % 2 === 0 ? 'animate-fade-in-left' : 'animate-fade-in-right'}`} style={{ animationDelay: `${index * 100}ms` }}>
                     <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-full flex items-center justify-center font-bold shadow-lg">
                       {item.day}
@@ -319,7 +397,7 @@ const FinalPlanUI = () => {
                     <span className="font-semibold text-purple-800">Accommodation</span>
                   </div>
                   <p className="text-sm text-purple-700 mb-1">4-star hotel in city center</p>
-                  <p className="text-xs text-purple-600">{(tripData.duration || 7) - 1} nights with breakfast</p>
+                  <p className="text-xs text-purple-600">{(tripData.duration && tripData.duration > 0 ? tripData.duration : 7) - 1} nights with breakfast</p>
                 </div>
               </div>
             </div>

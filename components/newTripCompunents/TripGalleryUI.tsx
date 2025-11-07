@@ -17,7 +17,11 @@ interface MediaItem {
   likes?: number;
 }
 
-const TripGalleryUI = () => {
+interface TripGalleryUIProps {
+  onContinue?: () => void;
+}
+
+const TripGalleryUI = ({ onContinue }: TripGalleryUIProps) => {
   const { tripData } = useTripContext()
   const [selectedImage, setSelectedImage] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
@@ -40,6 +44,23 @@ const TripGalleryUI = () => {
     
     setLoading(true)
     try {
+      // Fetch live media first
+      const liveMediaResponse = await fetch('/api/live-media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          destination: tripData.destination, 
+          type: mediaType === 'images' ? 'images' : 'videos',
+          limit: 15
+        })
+      })
+      
+      let liveMediaData = null
+      if (liveMediaResponse.ok) {
+        liveMediaData = await liveMediaResponse.json()
+      }
+      
+      // Also fetch from existing media search
       const response = await fetch('/api/media-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,24 +71,59 @@ const TripGalleryUI = () => {
       })
       
       const result = await response.json()
+      let combinedData = []
       
-      if (result.data) {
+      // Combine live media with existing media
+      if (liveMediaData?.success && liveMediaData.media) {
+        const liveItems = mediaType === 'images' 
+          ? liveMediaData.media.images || []
+          : liveMediaData.media.videos || []
+          
+        combinedData = liveItems.map((item: any) => ({
+          id: item.id,
+          url: item.url,
+          thumb: item.thumbnail || item.url,
+          alt: item.description || `${tripData.destination} view`,
+          category: item.category || getRandomCategory(),
+          likes: Math.floor(Math.random() * 2000) + 100,
+          photographer: item.photographer || item.channel || 'Live Source',
+          title: item.title || item.description,
+          source: item.source || 'live'
+        }))
+      }
+      
+      // Add existing media search results
+      if (result.success && result.data && result.data.length > 0) {
         const processedData = result.data.map((item: any, index: number) => ({
           ...item,
-          category: getRandomCategory(),
-          likes: Math.floor(Math.random() * 2000) + 100
+          category: item.category || getRandomCategory(),
+          likes: item.likes || Math.floor(Math.random() * 2000) + 100
         }))
-        
+        combinedData = [...combinedData, ...processedData]
+      }
+      
+      if (combinedData.length > 0) {
         if (mediaType === 'images') {
-          setImages(processedData)
+          setImages(combinedData)
         } else {
-          setVideos(processedData)
+          setVideos(combinedData)
+        }
+      } else {
+        // Fallback to high-quality placeholder data
+        if (mediaType === 'images') {
+          setImages(getPlaceholderImages())
+        } else {
+          setVideos(getPlaceholderVideos())
         }
       }
     } catch (error) {
       console.error('Error fetching media:', error)
       // Fallback to placeholder data
-      setImages(getPlaceholderImages())
+      if (mediaType === 'images') {
+        setImages(getPlaceholderImages())
+      } else {
+        setVideos(getPlaceholderVideos())
+      }
     } finally {
       setLoading(false)
     }
@@ -79,16 +135,52 @@ const TripGalleryUI = () => {
   }
 
   const getPlaceholderImages = (): MediaItem[] => {
-    const categories = ['landmark', 'city', 'culture', 'architecture', 'tourism', 'nature']
+    const categories = [
+      { name: 'landmark', desc: 'Famous landmarks and monuments' },
+      { name: 'city', desc: 'City views and urban landscapes' },
+      { name: 'culture', desc: 'Cultural sites and traditions' },
+      { name: 'architecture', desc: 'Beautiful architecture' },
+      { name: 'tourism', desc: 'Tourist attractions' },
+      { name: 'nature', desc: 'Natural beauty and landscapes' },
+      { name: 'food', desc: 'Local cuisine and dining' },
+      { name: 'market', desc: 'Local markets and shopping' },
+      { name: 'sunset', desc: 'Scenic sunset views' },
+      { name: 'street', desc: 'Street scenes and local life' }
+    ]
+    
     return categories.map((category, index) => ({
       id: index + 1,
-      url: `https://source.unsplash.com/1200x800/?${encodeURIComponent(tripData.destination || 'travel')},${category}`,
-      thumb: `https://source.unsplash.com/600x400/?${encodeURIComponent(tripData.destination || 'travel')},${category}`,
-      alt: `${tripData.destination} ${category}`,
-      category: category.charAt(0).toUpperCase() + category.slice(1),
+      url: `https://source.unsplash.com/1200x800/?${encodeURIComponent(tripData.destination || 'travel')},${category.name},photography`,
+      thumb: `https://source.unsplash.com/600x400/?${encodeURIComponent(tripData.destination || 'travel')},${category.name}`,
+      alt: `${tripData.destination} ${category.desc}`,
+      category: category.name.charAt(0).toUpperCase() + category.name.slice(1),
       likes: Math.floor(Math.random() * 2000) + 100,
-      photographer: 'Unsplash Community',
-      title: `${tripData.destination} ${category.charAt(0).toUpperCase() + category.slice(1)}`
+      photographer: 'Travel Photography Community',
+      title: `${tripData.destination} - ${category.desc}`,
+      source: 'Unsplash'
+    }))
+  }
+  
+  const getPlaceholderVideos = (): MediaItem[] => {
+    const videoTypes = [
+      { type: 'walking_tour', title: 'Walking Tour', duration: '45-60 min' },
+      { type: 'drone_footage', title: 'Aerial Views', duration: '10-15 min' },
+      { type: 'cultural_experience', title: 'Cultural Experience', duration: '20-30 min' },
+      { type: 'food_tour', title: 'Food Tour', duration: '25-35 min' },
+      { type: 'nightlife', title: 'Nightlife Tour', duration: '15-25 min' },
+      { type: 'historical', title: 'Historical Documentary', duration: '30-45 min' }
+    ]
+    
+    return videoTypes.map((video, index) => ({
+      id: index + 1,
+      url: `https://www.youtube.com/results?search_query=${encodeURIComponent(tripData.destination + ' ' + video.type + ' 4k')}`,
+      thumb: `https://source.unsplash.com/640x360/?${encodeURIComponent(tripData.destination)},${video.type.replace('_', ' ')},video`,
+      alt: `${tripData.destination} ${video.title}`,
+      title: `${tripData.destination} ${video.title}`,
+      category: video.type,
+      likes: Math.floor(Math.random() * 1000) + 200,
+      photographer: 'YouTube Community',
+      source: 'YouTube'
     }))
   }
 
@@ -116,7 +208,7 @@ const TripGalleryUI = () => {
             <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
               {tripData.destination ? `${tripData.destination} Gallery` : 'Trip Gallery'}
             </h3>
-            <p className="text-sm text-gray-600">Explore stunning {mediaType} from your destination</p>
+            <p className="text-sm text-gray-600">Explore live {mediaType} and stunning visuals from your destination</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -307,6 +399,16 @@ const TripGalleryUI = () => {
             <span className="text-sm text-gray-600">
               {selectedImage + 1} of {filteredMedia.length} {mediaType}
             </span>
+          </div>
+
+          {/* Continue Button */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={onContinue}
+              className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
+            >
+              Continue to Map View
+            </button>
           </div>
         </>
       )}
