@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Eye, MapPin, Camera, Play, Pause, RotateCcw, Maximize, ExternalLink } from 'lucide-react'
+import { Eye, MapPin, Camera, Play, Pause, RotateCcw, ExternalLink } from 'lucide-react'
 import { useTripContext } from '@/contex/TripContext'
 
 interface VirtualLocation {
@@ -9,11 +9,11 @@ interface VirtualLocation {
   description: string
   panoramaUrl: string
   streetViewUrl?: string
-  coordinates?: { lat: number, lng: number }
+  coordinates?: { lat: number; lng: number }
 }
 
 interface VirtualTourUIProps {
-  onContinue?: () => void;
+  onContinue?: () => void
 }
 
 const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
@@ -22,20 +22,12 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
   const [isPlaying, setIsPlaying] = useState(false)
   const [locations, setLocations] = useState<VirtualLocation[]>([])
   const [tourMode] = useState<'guided' | 'free'>('free')
-  const [tourSteps] = useState<any[]>([])
+  const [tourSteps] = useState<Array<{ id: string; name: string; description: string }>>([])
   const [currentStep, setCurrentStep] = useState(0)
 
-  useEffect(() => {
-    // Generate virtual tour locations based on destination
-    const generateVirtualTour = async () => {
-      if (!tripData.destination) return
-      
-      const virtualLocations = await getVirtualTourLocations(tripData.destination)
-      setLocations(virtualLocations)
-    }
-    
-    generateVirtualTour()
-  }, [tripData.destination])
+  const generateStreetViewId = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+  }
 
   const getVirtualTourLocations = async (destination: string): Promise<VirtualLocation[]> => {
     try {
@@ -43,11 +35,12 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
       const locationResponse = await fetch('/api/location-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination })
+        body: JSON.stringify({ destination }),
       })
-      
-      let lat = 0, lng = 0
-      
+
+      let lat = 0,
+        lng = 0
+
       if (locationResponse.ok) {
         const locationData = await locationResponse.json()
         if (locationData.coordinates) {
@@ -55,20 +48,20 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
           lng = locationData.coordinates.lng
         }
       }
-      
+
       // Fallback to Nominatim if no coordinates
       if (lat === 0 && lng === 0) {
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination)}&limit=1`
         )
         const data = await response.json()
-        
+
         if (data[0]) {
           lat = parseFloat(data[0].lat)
           lng = parseFloat(data[0].lon)
         }
       }
-      
+
       if (lat !== 0 && lng !== 0) {
         return [
           {
@@ -76,42 +69,50 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
             description: `Explore the heart of ${destination} with this immersive 360° view.`,
             panoramaUrl: `https://www.google.com/maps/embed?pb=!4v${Date.now()}!6m8!1m7!1sCAoSLEFGMVFpcE1fVXBkdE1QRXE0QnNEUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVE!2m2!1d${lat}!2d${lng}!3f0!4f0!5f0.7820865974627469`,
             streetViewUrl: `https://www.google.com/maps/@${lat},${lng},3a,75y,0h,90t/data=!3m6!1e1!3m4!1s${generateStreetViewId()}!2e0!7i16384!8i8192`,
-            coordinates: { lat, lng }
+            coordinates: { lat, lng },
           },
           {
             name: `${destination} Main Area`,
             description: `Discover the main attractions and local life of ${destination}.`,
             panoramaUrl: `https://www.google.com/maps/embed?pb=!4v${Date.now() + 1}!6m8!1m7!1sCAoSLEFGMVFpcE1fVXBkdE1QRXE0QnNEUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVE!2m2!1d${lat + 0.002}!2d${lng + 0.002}!3f90!4f0!5f0.7820865974627469`,
             streetViewUrl: `https://www.google.com/maps/@${lat + 0.002},${lng + 0.002},3a,75y,90h,90t/data=!3m6!1e1!3m4!1s${generateStreetViewId()}!2e0!7i16384!8i8192`,
-            coordinates: { lat: lat + 0.002, lng: lng + 0.002 }
+            coordinates: { lat: lat + 0.002, lng: lng + 0.002 },
           },
           {
             name: `${destination} Landmarks`,
             description: `Visit the most famous landmarks and historic sites of ${destination}.`,
             panoramaUrl: `https://www.google.com/maps/embed?pb=!4v${Date.now() + 2}!6m8!1m7!1sCAoSLEFGMVFpcE1fVXBkdE1QRXE0QnNEUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVE!2m2!1d${lat - 0.002}!2d${lng - 0.002}!3f180!4f0!5f0.7820865974627469`,
             streetViewUrl: `https://www.google.com/maps/@${lat - 0.002},${lng - 0.002},3a,75y,180h,90t/data=!3m6!1e1!3m4!1s${generateStreetViewId()}!2e0!7i16384!8i8192`,
-            coordinates: { lat: lat - 0.002, lng: lng - 0.002 }
-          }
+            coordinates: { lat: lat - 0.002, lng: lng - 0.002 },
+          },
         ]
       }
     } catch (error) {
       console.error('Error generating virtual tour:', error)
     }
-    
+
     // Enhanced fallback with better Street View integration
     return [
       {
         name: `${destination} Virtual Tour`,
         description: `Experience ${destination} through immersive 360° street views and explore the city virtually.`,
         panoramaUrl: `https://www.google.com/maps/embed?pb=!4v${Date.now()}!6m8!1m7!1sCAoSLEFGMVFpcE1fVXBkdE1QRXE0QnNEUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVE!2m2!1d0!2d0!3f0!4f0!5f0.7820865974627469`,
-        streetViewUrl: `https://www.google.com/maps/search/${encodeURIComponent(destination)}/@?api=1&map_action=pano`
-      }
+        streetViewUrl: `https://www.google.com/maps/search/${encodeURIComponent(destination)}/@?api=1&map_action=pano`,
+      },
     ]
   }
 
-  const generateStreetViewId = () => {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-  }
+  useEffect(() => {
+    // Generate virtual tour locations based on destination
+    const generateVirtualTour = async () => {
+      if (!tripData.destination) return
+
+      const virtualLocations = await getVirtualTourLocations(tripData.destination)
+      setLocations(virtualLocations)
+    }
+
+    generateVirtualTour()
+  }, [tripData.destination])
 
   const togglePlayPause = () => {
     setIsPlaying(!isPlaying)
@@ -120,7 +121,7 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
       const interval = setInterval(() => {
         setCurrentLocation(prev => (prev + 1) % locations.length)
       }, 5000)
-      
+
       setTimeout(() => {
         clearInterval(interval)
         setIsPlaying(false)
@@ -129,7 +130,10 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
   }
 
   const openFullscreen = () => {
-    if (locations[currentLocation]?.streetViewUrl && locations[currentLocation].streetViewUrl !== '#') {
+    if (
+      locations[currentLocation]?.streetViewUrl &&
+      locations[currentLocation].streetViewUrl !== '#'
+    ) {
       window.open(locations[currentLocation].streetViewUrl, '_blank')
     } else {
       // Enhanced Google Maps Street View URL
@@ -137,7 +141,7 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
       window.open(searchUrl, '_blank')
     }
   }
-  
+
   const openYouTubeVirtualTour = () => {
     const youtubeUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(tripData.destination + ' virtual tour 4k walking tour')}`
     window.open(youtubeUrl, '_blank')
@@ -148,7 +152,9 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
       <div className="w-full max-w-4xl bg-white rounded-xl border border-gray-200 p-6">
         <div className="text-center py-8">
           <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">Virtual tour will be available once you select a destination</p>
+          <p className="text-gray-500">
+            Virtual tour will be available once you select a destination
+          </p>
         </div>
       </div>
     )
@@ -196,11 +202,11 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
                 </div>
               </div>
             )}
-            
+
             {/* Control Overlay */}
             <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={togglePlayPause}
                   className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-lg"
                 >
@@ -210,7 +216,7 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
                     <Play className="w-4 h-4 text-purple-600" />
                   )}
                 </button>
-                <button 
+                <button
                   onClick={() => setCurrentLocation(0)}
                   className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-lg"
                 >
@@ -218,14 +224,14 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
                 </button>
               </div>
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={openFullscreen}
                   className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-lg"
                   title="Open in Google Street View"
                 >
                   <ExternalLink className="w-4 h-4 text-purple-600" />
                 </button>
-                <button 
+                <button
                   onClick={openYouTubeVirtualTour}
                   className="p-2 bg-red-500/90 rounded-full hover:bg-red-600 transition-colors shadow-lg"
                   title="Watch YouTube Virtual Tour"
@@ -235,7 +241,7 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
               </div>
             </div>
           </div>
-          
+
           <div className="flex gap-2 overflow-x-auto pb-2">
             {locations.map((location, idx) => (
               <button
@@ -243,7 +249,7 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
                 onClick={() => setCurrentLocation(idx)}
                 className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition-colors ${
                   idx === currentLocation
-                    ? 'bg-purple-600 text-white' 
+                    ? 'bg-purple-600 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -261,13 +267,18 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
                 <MapPin className="w-4 h-4 text-purple-600" />
                 <span className="font-medium text-purple-800">Current Location</span>
               </div>
-              <h4 className="font-semibold text-gray-800 mb-2">{locations[currentLocation]?.name}</h4>
+              <h4 className="font-semibold text-gray-800 mb-2">
+                {locations[currentLocation]?.name}
+              </h4>
               <p className="text-sm text-gray-600 mb-3">
                 {locations[currentLocation]?.description}
               </p>
               {locations[currentLocation]?.coordinates && (
                 <div className="flex items-center gap-4 text-xs text-purple-600">
-                  <span>📍 {locations[currentLocation].coordinates.lat.toFixed(4)}, {locations[currentLocation].coordinates.lng.toFixed(4)}</span>
+                  <span>
+                    📍 {locations[currentLocation].coordinates.lat.toFixed(4)},{' '}
+                    {locations[currentLocation].coordinates.lng.toFixed(4)}
+                  </span>
                 </div>
               )}
             </div>
@@ -277,23 +288,29 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
             <h4 className="font-semibold text-gray-800">Tour Locations</h4>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {locations.map((location, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   onClick={() => setCurrentLocation(idx)}
                   className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                    idx === currentLocation 
-                      ? 'bg-purple-100 border border-purple-200 shadow-sm' 
+                    idx === currentLocation
+                      ? 'bg-purple-100 border border-purple-200 shadow-sm'
                       : 'hover:bg-gray-50 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                      idx === currentLocation ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                        idx === currentLocation
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-200 text-gray-600'
+                      }`}
+                    >
                       {idx + 1}
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-700 block">{location.name}</span>
+                      <span className="text-sm font-medium text-gray-700 block">
+                        {location.name}
+                      </span>
                       <span className="text-xs text-gray-500">360° Street View</span>
                     </div>
                   </div>
@@ -332,7 +349,7 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-gradient-to-br from-red-50 to-pink-50 p-4 rounded-lg border border-red-200">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -349,13 +366,14 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
                 </button>
               </div>
               <p className="text-sm text-red-700">
-                Experience {tripData.destination} through immersive 4K walking tours and drone footage on YouTube.
+                Experience {tripData.destination} through immersive 4K walking tours and drone
+                footage on YouTube.
               </p>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* Tour Progress Bar (for guided mode) */}
       {tourMode === 'guided' && tourSteps.length > 0 && (
         <div className="mt-6 bg-gray-50 p-4 rounded-lg">
@@ -366,7 +384,7 @@ const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-purple-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentStep + 1) / tourSteps.length) * 100}%` }}
             ></div>

@@ -5,7 +5,7 @@ import { Plane, MapPin, Calendar, Users, Star, Award, Globe, Heart } from 'lucid
 import { Button } from '../ui/button'
 
 interface WelcomeConsultationUIProps {
-  onStartConsultation?: (consultationType: string) => void;
+  onStartConsultation?: (consultationType: string) => void
 }
 
 const WelcomeConsultationUI = ({ onStartConsultation }: WelcomeConsultationUIProps) => {
@@ -18,8 +18,13 @@ const WelcomeConsultationUI = ({ onStartConsultation }: WelcomeConsultationUIPro
       description: 'Full-service trip planning with detailed consultation',
       icon: <Award className="w-6 h-6" />,
       duration: '15-20 minutes',
-      features: ['Personalized itinerary', 'Accommodation booking', 'Activity planning', 'Travel insurance'],
-      color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+      features: [
+        'Personalized itinerary',
+        'Accommodation booking',
+        'Activity planning',
+        'Travel insurance',
+      ],
+      color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
     },
     {
       id: 'quick-getaway',
@@ -27,8 +32,13 @@ const WelcomeConsultationUI = ({ onStartConsultation }: WelcomeConsultationUIPro
       description: 'Fast-track planning for spontaneous trips',
       icon: <Plane className="w-6 h-6" />,
       duration: '5-10 minutes',
-      features: ['Essential planning', 'Quick recommendations', 'Basic itinerary', 'Instant booking'],
-      color: 'bg-green-50 border-green-200 hover:bg-green-100'
+      features: [
+        'Essential planning',
+        'Quick recommendations',
+        'Basic itinerary',
+        'Instant booking',
+      ],
+      color: 'bg-green-50 border-green-200 hover:bg-green-100',
     },
     {
       id: 'special-occasion',
@@ -36,9 +46,14 @@ const WelcomeConsultationUI = ({ onStartConsultation }: WelcomeConsultationUIPro
       description: 'Celebrating something special? Let us make it unforgettable',
       icon: <Heart className="w-6 h-6" />,
       duration: '20-25 minutes',
-      features: ['Custom experiences', 'Special arrangements', 'Romantic settings', 'Memory creation'],
-      color: 'bg-pink-50 border-pink-200 hover:bg-pink-100'
-    }
+      features: [
+        'Custom experiences',
+        'Special arrangements',
+        'Romantic settings',
+        'Memory creation',
+      ],
+      color: 'bg-pink-50 border-pink-200 hover:bg-pink-100',
+    },
   ]
 
   const handleStartConsultation = (type: string) => {
@@ -59,8 +74,9 @@ const WelcomeConsultationUI = ({ onStartConsultation }: WelcomeConsultationUIPro
           Welcome to DreamTrip Adventures! ✈️
         </h2>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          I'm your personal travel consultant, and I'm absolutely thrilled to help you plan your next incredible journey! 
-          With over 15 years of experience creating unforgettable travel experiences, I'm here to make your dream trip a reality.
+          I'm your personal travel consultant, and I'm absolutely thrilled to help you plan your
+          next incredible journey! With over 15 years of experience creating unforgettable travel
+          experiences, I'm here to make your dream trip a reality.
         </p>
       </div>
 
@@ -89,9 +105,9 @@ const WelcomeConsultationUI = ({ onStartConsultation }: WelcomeConsultationUIPro
         <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
           Let's choose the perfect consultation for you:
         </h3>
-        
+
         <div className="grid gap-4 md:gap-6">
-          {consultationTypes.map((type) => (
+          {consultationTypes.map(type => (
             <div
               key={type.id}
               onClick={() => handleStartConsultation(type.id)}
@@ -102,12 +118,14 @@ const WelcomeConsultationUI = ({ onStartConsultation }: WelcomeConsultationUIPro
               }`}
             >
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                  selectedType === type.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
-                }`}>
+                <div
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    selectedType === type.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
                   {type.icon}
                 </div>
-                
+
                 <div className="flex-1">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                     <h4 className="font-semibold text-gray-800 text-lg">{type.title}</h4>
@@ -115,23 +133,26 @@ const WelcomeConsultationUI = ({ onStartConsultation }: WelcomeConsultationUIPro
                       {type.duration}
                     </span>
                   </div>
-                  
+
                   <p className="text-gray-600 mb-3">{type.description}</p>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     {type.features.map((feature, idx) => (
-                      <span key={idx} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                      <span
+                        key={idx}
+                        className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                      >
                         ✓ {feature}
                       </span>
                     ))}
                   </div>
                 </div>
-                
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                  selectedType === type.id
-                    ? 'border-primary bg-primary'
-                    : 'border-gray-300'
-                }`}>
+
+                <div
+                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                    selectedType === type.id ? 'border-primary bg-primary' : 'border-gray-300'
+                  }`}
+                >
                   {selectedType === type.id && (
                     <div className="w-3 h-3 bg-white rounded-full"></div>
                   )}
@@ -146,10 +167,11 @@ const WelcomeConsultationUI = ({ onStartConsultation }: WelcomeConsultationUIPro
       {selectedType && (
         <div className="text-center p-6 bg-primary/5 rounded-xl border border-primary/20">
           <p className="text-primary font-medium mb-4">
-            🎉 Excellent choice! I'm excited to start planning your {consultationTypes.find(t => t.id === selectedType)?.title.toLowerCase()}.
+            🎉 Excellent choice! I'm excited to start planning your{' '}
+            {consultationTypes.find(t => t.id === selectedType)?.title.toLowerCase()}.
           </p>
           <p className="text-gray-600 text-sm mb-4">
-            I'll ask you some thoughtful questions to understand your travel dreams and preferences. 
+            I'll ask you some thoughtful questions to understand your travel dreams and preferences.
             This helps me create a personalized experience that's perfect for you!
           </p>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500">

@@ -10,41 +10,47 @@ const About = () => {
   const features = [
     {
       icon: <Zap className="w-8 h-8 text-yellow-500" />,
-      title: "AI-Powered Planning",
-      description: "Advanced artificial intelligence creates personalized itineraries based on your preferences, budget, and travel style with real-time optimization."
+      title: 'AI-Powered Planning',
+      description:
+        'Advanced artificial intelligence creates personalized itineraries based on your preferences, budget, and travel style with real-time optimization.',
     },
     {
       icon: <MapPin className="w-8 h-8 text-blue-500" />,
-      title: "Real-Time Tracking",
-      description: "Stay safe with GPS tracking, emergency contacts, location sharing, and automatic safety alerts during your journey."
+      title: 'Real-Time Tracking',
+      description:
+        'Stay safe with GPS tracking, emergency contacts, location sharing, and automatic safety alerts during your journey.',
     },
     {
       icon: <Users className="w-8 h-8 text-green-500" />,
-      title: "Group Collaboration",
-      description: "Plan with friends and family using shared itineraries, voting on activities, and collaborative budget management."
+      title: 'Group Collaboration',
+      description:
+        'Plan with friends and family using shared itineraries, voting on activities, and collaborative budget management.',
     },
     {
       icon: <Shield className="w-8 h-8 text-purple-500" />,
-      title: "Safety & Security",
-      description: "Enterprise-grade security with risk assessment, emergency protocols, and 24/7 support for peace of mind."
+      title: 'Safety & Security',
+      description:
+        'Enterprise-grade security with risk assessment, emergency protocols, and 24/7 support for peace of mind.',
     },
     {
       icon: <Globe className="w-8 h-8 text-indigo-500" />,
-      title: "Global Coverage",
-      description: "Explore 50+ countries with local insights, cultural tips, weather integration, and authentic experiences."
+      title: 'Global Coverage',
+      description:
+        'Explore 50+ countries with local insights, cultural tips, weather integration, and authentic experiences.',
     },
     {
       icon: <Compass className="w-8 h-8 text-teal-500" />,
-      title: "Virtual Tours",
-      description: "Preview destinations with 360° virtual tours, Street View integration, and immersive media galleries."
-    }
+      title: 'Virtual Tours',
+      description:
+        'Preview destinations with 360° virtual tours, Street View integration, and immersive media galleries.',
+    },
   ]
 
   const stats = [
-    { number: "25K+", label: "Trips Planned" },
-    { number: "50+", label: "Countries Covered" },
-    { number: "98%", label: "Satisfaction Rate" },
-    { number: "24/7", label: "AI Support" }
+    { number: '25K+', label: 'Trips Planned' },
+    { number: '50+', label: 'Countries Covered' },
+    { number: '98%', label: 'Satisfaction Rate' },
+    { number: '24/7', label: 'AI Support' },
   ]
 
   return (
@@ -57,7 +63,8 @@ const About = () => {
             <h1 className="text-4xl md:text-6xl font-bold">About AI Trip Planner</h1>
           </div>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
-            Revolutionizing travel planning with artificial intelligence to create unforgettable journeys tailored just for you.
+            Revolutionizing travel planning with artificial intelligence to create unforgettable
+            journeys tailored just for you.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/create-trip">
@@ -66,7 +73,11 @@ const About = () => {
               </Button>
             </Link>
             <Link href="/pricing">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-primary"
+              >
                 View Pricing
               </Button>
             </Link>
@@ -80,9 +91,9 @@ const About = () => {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Our Mission</h2>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-              We believe that everyone deserves to experience the world without the stress of complex planning. 
-              Our AI-powered platform transforms your travel dreams into detailed, personalized itineraries, 
-              making every journey memorable and hassle-free.
+              We believe that everyone deserves to experience the world without the stress of
+              complex planning. Our AI-powered platform transforms your travel dreams into detailed,
+              personalized itineraries, making every journey memorable and hassle-free.
             </p>
           </div>
 
@@ -90,7 +101,9 @@ const About = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-primary mb-2">{stat.number}</div>
+                <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
+                  {stat.number}
+                </div>
                 <div className="text-gray-600 font-medium">{stat.label}</div>
               </div>
             ))}
@@ -102,9 +115,12 @@ const About = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Why Choose AI Trip Planner?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              Why Choose AI Trip Planner?
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Experience the future of travel planning with our cutting-edge features designed to make your journey extraordinary.
+              Experience the future of travel planning with our cutting-edge features designed to
+              make your journey extraordinary.
             </p>
           </div>
 
@@ -112,9 +128,7 @@ const About = () => {
             {features.map((feature, index) => (
               <Card key={index} className="text-center hover:shadow-lg transition-shadow">
                 <CardHeader>
-                  <div className="flex justify-center mb-4">
-                    {feature.icon}
-                  </div>
+                  <div className="flex justify-center mb-4">{feature.icon}</div>
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -143,27 +157,30 @@ const About = () => {
               </div>
               <h3 className="text-xl font-semibold mb-4">Tell Us Your Preferences</h3>
               <p className="text-gray-600">
-                Share your destination, budget, interests, and travel style. Our AI listens to every detail.
+                Share your destination, budget, interests, and travel style. Our AI listens to every
+                detail.
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                 2
               </div>
               <h3 className="text-xl font-semibold mb-4">AI Creates Your Plan</h3>
               <p className="text-gray-600">
-                Our advanced algorithms analyze thousands of options to craft your personalized itinerary.
+                Our advanced algorithms analyze thousands of options to craft your personalized
+                itinerary.
               </p>
             </div>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                 3
               </div>
               <h3 className="text-xl font-semibold mb-4">Enjoy Your Journey</h3>
               <p className="text-gray-600">
-                Get your complete itinerary with maps, bookings, and recommendations. Just pack and go!
+                Get your complete itinerary with maps, bookings, and recommendations. Just pack and
+                go!
               </p>
             </div>
           </div>
@@ -174,9 +191,12 @@ const About = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Powered by Advanced Technology</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              Powered by Advanced Technology
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our platform leverages cutting-edge AI, real-time data, and comprehensive safety features.
+              Our platform leverages cutting-edge AI, real-time data, and comprehensive safety
+              features.
             </p>
           </div>
 
@@ -186,33 +206,45 @@ const About = () => {
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-gray-600">Natural Language Processing for conversational trip planning</span>
+                  <span className="text-gray-600">
+                    Natural Language Processing for conversational trip planning
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-gray-600">Recommendation algorithms trained on millions of travel experiences</span>
+                  <span className="text-gray-600">
+                    Recommendation algorithms trained on millions of travel experiences
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-gray-600">Real-time optimization based on weather, events, and local conditions</span>
+                  <span className="text-gray-600">
+                    Real-time optimization based on weather, events, and local conditions
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-gray-600">Predictive analytics for budget optimization and cost savings</span>
+                  <span className="text-gray-600">
+                    Predictive analytics for budget optimization and cost savings
+                  </span>
                 </li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Safety & Security</h3>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-gray-600">Multi-source location tracking (GPS, WiFi, Cellular, Bluetooth)</span>
+                  <span className="text-gray-600">
+                    Multi-source location tracking (GPS, WiFi, Cellular, Bluetooth)
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-gray-600">Emergency contact system with automatic alerts</span>
+                  <span className="text-gray-600">
+                    Emergency contact system with automatic alerts
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
@@ -243,7 +275,11 @@ const About = () => {
               </Button>
             </Link>
             <Link href="/contact">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-primary"
+              >
                 Get in Touch
               </Button>
             </Link>

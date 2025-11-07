@@ -1,7 +1,18 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Check, Star, Zap, Crown, Sparkles, Phone, CreditCard, ArrowRight, CheckCircle, XCircle } from 'lucide-react'
+import {
+  Check,
+  Star,
+  Zap,
+  Crown,
+  Sparkles,
+  Phone,
+  CreditCard,
+  ArrowRight,
+  CheckCircle,
+  XCircle,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MobileMoneyInput } from '@/components/ui/mobile-money-input'
 import { PaymentStatusIndicator } from '@/components/ui/payment-status-indicator'
@@ -15,8 +26,13 @@ const PricingPage = () => {
   const [paymentMethod, setPaymentMethod] = useState<'momo' | 'card'>('momo')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null)
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'ussd_sent' | 'awaiting_payment' | 'completed' | 'failed'>('idle')
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error'
+    message: string
+  } | null>(null)
+  const [paymentStatus, setPaymentStatus] = useState<
+    'idle' | 'processing' | 'ussd_sent' | 'awaiting_payment' | 'completed' | 'failed'
+  >('idle')
   const [paymentMessage, setPaymentMessage] = useState('')
   const [timeRemaining, setTimeRemaining] = useState(300)
 
@@ -29,7 +45,7 @@ const PricingPage = () => {
     if (success === 'true' && plan) {
       setNotification({
         type: 'success',
-        message: `Payment successful! Your ${plan} plan is now active.`
+        message: `Payment successful! Your ${plan} plan is now active.`,
       })
     } else if (error) {
       let errorMessage = 'Payment failed. Please try again.'
@@ -41,7 +57,8 @@ const PricingPage = () => {
           errorMessage = 'Invalid plan selected. Please try again.'
           break
         case 'subscription_update_failed':
-          errorMessage = 'Payment successful but subscription update failed. Please contact support.'
+          errorMessage =
+            'Payment successful but subscription update failed. Please contact support.'
           break
         case 'callback_error':
           errorMessage = 'Payment processing error. Please contact support if payment was deducted.'
@@ -70,12 +87,12 @@ const PricingPage = () => {
         'Basic AI planning',
         'Standard destinations',
         'Basic map integration',
-        'Email support'
+        'Email support',
       ],
       icon: <Star className="w-6 h-6" />,
       color: 'bg-gray-50 border-gray-200',
       buttonColor: 'bg-gray-600 hover:bg-gray-700',
-      popular: false
+      popular: false,
     },
     {
       id: 'pro',
@@ -93,12 +110,12 @@ const PricingPage = () => {
         'Weather integration',
         'Hotel recommendations',
         'Priority support',
-        'Trip sharing'
+        'Trip sharing',
       ],
       icon: <Zap className="w-6 h-6" />,
       color: 'bg-blue-50 border-blue-200',
       buttonColor: 'bg-blue-600 hover:bg-blue-700',
-      popular: true
+      popular: true,
     },
     {
       id: 'premium',
@@ -117,12 +134,12 @@ const PricingPage = () => {
         'Expense tracking',
         'Group planning',
         'Custom itineraries',
-        '24/7 support'
+        '24/7 support',
       ],
       icon: <Crown className="w-6 h-6" />,
       color: 'bg-purple-50 border-purple-200',
       buttonColor: 'bg-purple-600 hover:bg-purple-700',
-      popular: false
+      popular: false,
     },
     {
       id: 'enterprise',
@@ -141,102 +158,107 @@ const PricingPage = () => {
         'API access',
         'White-label options',
         'Dedicated support',
-        'Custom integrations'
+        'Custom integrations',
       ],
       icon: <Sparkles className="w-6 h-6" />,
       color: 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200',
-      buttonColor: 'bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700',
-      popular: false
-    }
+      buttonColor:
+        'bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700',
+      popular: false,
+    },
   ]
 
   const pollPaymentStatus = async (orderId: string) => {
-    const maxAttempts = 30;
-    let attempts = 0;
-    
+    const maxAttempts = 30
+    let attempts = 0
+
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
-          clearInterval(timer);
-          setPaymentStatus('failed');
-          setNotification({ 
-            type: 'error', 
-            message: 'Payment timeout. Please check if payment was deducted and contact support if needed.' 
-          });
-          setIsProcessing(false);
-          setSelectedPlan('');
-          return 0;
+          clearInterval(timer)
+          setPaymentStatus('failed')
+          setNotification({
+            type: 'error',
+            message:
+              'Payment timeout. Please check if payment was deducted and contact support if needed.',
+          })
+          setIsProcessing(false)
+          setSelectedPlan('')
+          return 0
         }
-        return prev - 1;
-      });
-    }, 1000);
-    
+        return prev - 1
+      })
+    }, 1000)
+
     const poll = async () => {
       try {
-        const response = await fetch(`/api/payment/status?orderId=${orderId}`);
-        const result = await response.json();
-        
-        setPaymentMessage(result.message || 'Checking payment status...');
-        
+        const response = await fetch(`/api/payment/status?orderId=${orderId}`)
+        const result = await response.json()
+
+        setPaymentMessage(result.message || 'Checking payment status...')
+
         if (result.status === 'completed' || result.status === 'success') {
-          clearInterval(timer);
-          setPaymentStatus('completed');
-          setNotification({ 
-            type: 'success', 
-            message: 'Payment received! Your subscription is now active.' 
-          });
-          setIsProcessing(false);
-          setSelectedPlan('');
-          setTimeout(() => window.location.reload(), 2000);
-          return;
+          clearInterval(timer)
+          setPaymentStatus('completed')
+          setNotification({
+            type: 'success',
+            message: 'Payment received! Your subscription is now active.',
+          })
+          setIsProcessing(false)
+          setSelectedPlan('')
+          setTimeout(() => window.location.reload(), 2000)
+          return
         } else if (result.status === 'failed' || result.status === 'cancelled') {
-          clearInterval(timer);
-          setPaymentStatus('failed');
-          setNotification({ 
-            type: 'error', 
-            message: 'Payment failed or was cancelled. Please try again.' 
-          });
-          setIsProcessing(false);
-          setSelectedPlan('');
-          return;
+          clearInterval(timer)
+          setPaymentStatus('failed')
+          setNotification({
+            type: 'error',
+            message: 'Payment failed or was cancelled. Please try again.',
+          })
+          setIsProcessing(false)
+          setSelectedPlan('')
+          return
         } else if (result.status === 'pending') {
-          setPaymentStatus('awaiting_payment');
-          setPaymentMessage('Waiting for payment confirmation. Please complete the transaction on your phone.');
+          setPaymentStatus('awaiting_payment')
+          setPaymentMessage(
+            'Waiting for payment confirmation. Please complete the transaction on your phone.'
+          )
         }
-        
-        
-        attempts++;
+
+        attempts++
         if (attempts < maxAttempts && timeRemaining > 0) {
-          setTimeout(poll, 10000);
+          setTimeout(poll, 10000)
         } else if (attempts >= maxAttempts) {
-          clearInterval(timer);
-          setPaymentStatus('failed');
-          setNotification({ 
-            type: 'error', 
-            message: 'Payment verification timeout. If payment was deducted, please contact support.' 
-          });
-          setIsProcessing(false);
-          setSelectedPlan('');
+          clearInterval(timer)
+          setPaymentStatus('failed')
+          setNotification({
+            type: 'error',
+            message:
+              'Payment verification timeout. If payment was deducted, please contact support.',
+          })
+          setIsProcessing(false)
+          setSelectedPlan('')
         }
       } catch (error) {
-        console.error('Payment status polling error:', error);
-        attempts++;
+        console.error('Payment status polling error:', error)
+        attempts++
         if (attempts >= maxAttempts) {
-          clearInterval(timer);
-          setPaymentStatus('failed');
-          setNotification({ 
-            type: 'error', 
-            message: 'Unable to verify payment status. Please contact support if payment was deducted.' 
-          });
-          setIsProcessing(false);
-          setSelectedPlan('');
+          clearInterval(timer)
+          setPaymentStatus('failed')
+          setNotification({
+            type: 'error',
+            message:
+              'Unable to verify payment status. Please contact support if payment was deducted.',
+          })
+          setIsProcessing(false)
+          setSelectedPlan('')
         }
       }
-    };
-    
+    }
+
     // Start polling after a short delay
-    setTimeout(poll, 5000);
-  };
+    setTimeout(poll, 5000)
+  }
 
   const handlePayment = async (planId: string) => {
     if (!user) {
@@ -248,7 +270,10 @@ const PricingPage = () => {
     if (!plan || plan.id === 'basic') return
 
     if (paymentMethod === 'momo' && !phoneNumber.trim()) {
-      setNotification({ type: 'error', message: 'Please enter your mobile number for Mobile Money payment' })
+      setNotification({
+        type: 'error',
+        message: 'Please enter your mobile number for Mobile Money payment',
+      })
       return
     }
 
@@ -257,9 +282,9 @@ const PricingPage = () => {
       const phoneRegex = /^(237)?[67]\d{8}$/
       const cleanPhone = phoneNumber.replace(/\s+/g, '')
       if (!phoneRegex.test(cleanPhone)) {
-        setNotification({ 
-          type: 'error', 
-          message: 'Invalid phone number format. Use format: 237XXXXXXXXX or XXXXXXXXX' 
+        setNotification({
+          type: 'error',
+          message: 'Invalid phone number format. Use format: 237XXXXXXXXX or XXXXXXXXX',
         })
         return
       }
@@ -278,13 +303,13 @@ const PricingPage = () => {
         amount: plan.price,
         currency: plan.currency || 'XAF',
         paymentMethod,
-        phoneNumber: paymentMethod === 'momo' ? phoneNumber : undefined
+        phoneNumber: paymentMethod === 'momo' ? phoneNumber : undefined,
       }
 
       const response = await fetch('/api/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(paymentData)
+        body: JSON.stringify(paymentData),
       })
 
       const result = await response.json()
@@ -306,7 +331,11 @@ const PricingPage = () => {
       setPaymentStatus('failed')
     } finally {
       // Only reset if not in a pending payment state
-      if (paymentStatus !== 'ussd_sent' && paymentStatus !== 'awaiting_payment' && paymentStatus !== 'processing') {
+      if (
+        paymentStatus !== 'ussd_sent' &&
+        paymentStatus !== 'awaiting_payment' &&
+        paymentStatus !== 'processing'
+      ) {
         setIsProcessing(false)
         setSelectedPlan('')
         setPaymentStatus('idle')
@@ -329,11 +358,13 @@ const PricingPage = () => {
 
         {/* Notification */}
         {notification && (
-          <div className={`max-w-md mx-auto mb-8 p-4 rounded-lg border ${
-            notification.type === 'success' 
-              ? 'bg-green-50 border-green-200 text-green-800' 
-              : 'bg-red-50 border-red-200 text-red-800'
-          }`}>
+          <div
+            className={`max-w-md mx-auto mb-8 p-4 rounded-lg border ${
+              notification.type === 'success'
+                ? 'bg-green-50 border-green-200 text-green-800'
+                : 'bg-red-50 border-red-200 text-red-800'
+            }`}
+          >
             <div className="flex items-center gap-2">
               {notification.type === 'success' ? (
                 <CheckCircle className="w-5 h-5" />
@@ -375,7 +406,7 @@ const PricingPage = () => {
                 <div className="text-xs text-gray-500">Visa/Mastercard</div>
               </button>
             </div>
-            
+
             {paymentMethod === 'momo' && (
               <div className="mt-4">
                 <MobileMoneyInput
@@ -402,7 +433,7 @@ const PricingPage = () => {
 
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {plans.map((plan) => (
+          {plans.map(plan => (
             <div
               key={plan.id}
               className={`relative rounded-2xl p-8 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 ${plan.color}`}
@@ -475,7 +506,6 @@ const PricingPage = () => {
         {/* Features Comparison */}
         <div className="mt-20 bg-white rounded-2xl shadow-lg p-4 sm:p-8 mx-4">
           <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-900 mb-8">
-            
             Feature Comparison
           </h2>
           <div className="overflow-x-auto">
@@ -491,35 +521,47 @@ const PricingPage = () => {
               </thead>
               <tbody>
                 <tr className="border-b">
-                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">Trip Generation</td>
+                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">
+                    Trip Generation
+                  </td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">1/day</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">10/month</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">20/2months</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">Unlimited</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">AI Planning</td>
+                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">
+                    AI Planning
+                  </td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">Basic</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">Advanced</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">Expert</td>
-                  <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">AI Insights</td>
+                  <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">
+                    AI Insights
+                  </td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">Weather Integration</td>
+                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">
+                    Weather Integration
+                  </td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">❌</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">✅</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">✅</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">✅</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">Virtual Tours</td>
+                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">
+                    Virtual Tours
+                  </td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">❌</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">❌</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">✅</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">✅</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">Team Collaboration</td>
+                  <td className="py-4 px-2 sm:px-4 font-medium text-sm sm:text-base">
+                    Team Collaboration
+                  </td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">❌</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">❌</td>
                   <td className="text-center py-4 px-2 sm:px-4 text-sm sm:text-base">❌</td>
@@ -537,27 +579,35 @@ const PricingPage = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">How does Mobile Money payment work?</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                How does Mobile Money payment work?
+              </h3>
               <p className="text-gray-600 text-sm">
-                We use Lygosap API for secure mobile money transactions. Simply enter your phone number and you'll receive a payment prompt on your device.
+                We use Lygosap API for secure mobile money transactions. Simply enter your phone
+                number and you'll receive a payment prompt on your device.
               </p>
             </div>
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="font-semibold text-gray-900 mb-2">Can I change my plan anytime?</h3>
               <p className="text-gray-600 text-sm">
-                Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.
+                Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected
+                in your next billing cycle.
               </p>
             </div>
             <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-2">What happens if I exceed my trip limit?</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">
+                What happens if I exceed my trip limit?
+              </h3>
               <p className="text-gray-600 text-sm">
-                You'll be prompted to upgrade your plan or wait until your next billing cycle to create more trips.
+                You'll be prompted to upgrade your plan or wait until your next billing cycle to
+                create more trips.
               </p>
             </div>
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="font-semibold text-gray-900 mb-2">Is there a refund policy?</h3>
               <p className="text-gray-600 text-sm">
-                We offer a 7-day money-back guarantee for all paid plans. Contact support for assistance.
+                We offer a 7-day money-back guarantee for all paid plans. Contact support for
+                assistance.
               </p>
             </div>
           </div>

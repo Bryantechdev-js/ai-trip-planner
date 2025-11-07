@@ -1,19 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    
+    const { userId } = await auth()
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await req.json();
-    const { location, emergencyContacts, batteryLevel, networkInfo } = body;
+    const body = await req.json()
+    const { location, emergencyContacts, batteryLevel, networkInfo } = body
 
     // Create emergency alert message
     const emergencyMessage = `
@@ -28,20 +25,20 @@ User needs immediate assistance!
 ⏰ Time: ${new Date().toLocaleString()}
 
 Please check on this person immediately or contact emergency services if needed.
-    `.trim();
+    `.trim()
 
     // Send notifications to emergency contacts
     const notifications = await Promise.allSettled(
       emergencyContacts.map(async (contact: string) => {
         if (contact.includes('@')) {
           // Email notification
-          return await sendEmailAlert(contact, emergencyMessage, location);
+          return await sendEmailAlert(contact, emergencyMessage, location)
         } else {
           // SMS notification (you'd need to implement SMS service)
-          return await sendSMSAlert(contact, emergencyMessage, location);
+          return await sendSMSAlert(contact, emergencyMessage, location)
         }
       })
-    );
+    )
 
     // Log emergency event
     const emergencyLog = {
@@ -51,14 +48,14 @@ Please check on this person immediately or contact emergency services if needed.
       batteryLevel,
       networkInfo,
       timestamp: Date.now(),
-      notificationResults: notifications
-    };
+      notificationResults: notifications,
+    }
 
     // Store emergency log in database
     // await convex.mutation(api.tracking.logEmergency, emergencyLog);
 
-    const successCount = notifications.filter(n => n.status === 'fulfilled').length;
-    const failureCount = notifications.filter(n => n.status === 'rejected').length;
+    const successCount = notifications.filter(n => n.status === 'fulfilled').length
+    const failureCount = notifications.filter(n => n.status === 'rejected').length
 
     return NextResponse.json({
       success: true,
@@ -66,16 +63,12 @@ Please check on this person immediately or contact emergency services if needed.
       details: {
         successful: successCount,
         failed: failureCount,
-        total: emergencyContacts.length
-      }
-    });
-
+        total: emergencyContacts.length,
+      },
+    })
   } catch (error) {
-    console.error('Emergency alert error:', error);
-    return NextResponse.json(
-      { error: 'Failed to send emergency alert' },
-      { status: 500 }
-    );
+    console.error('Emergency alert error:', error)
+    return NextResponse.json({ error: 'Failed to send emergency alert' }, { status: 500 })
   }
 }
 
@@ -83,7 +76,7 @@ async function sendEmailAlert(email: string, message: string, location: any) {
   try {
     // You would integrate with an email service like SendGrid, Resend, etc.
     // For now, we'll simulate the email sending
-    
+
     const emailData = {
       to: email,
       subject: '🚨 EMERGENCY ALERT - Immediate Assistance Needed',
@@ -103,16 +96,15 @@ async function sendEmailAlert(email: string, message: string, location: any) {
             <p style="color: #dc2626; font-weight: bold;">Please check on this person immediately or contact emergency services if needed.</p>
           </div>
         </div>
-      `
-    };
+      `,
+    }
 
     // Simulate email sending (replace with actual email service)
-    console.log('Emergency email would be sent to:', email);
-    return { success: true, contact: email, method: 'email' };
-
+    console.log('Emergency email would be sent to:', email)
+    return { success: true, contact: email, method: 'email' }
   } catch (error) {
-    console.error('Email alert error:', error);
-    throw error;
+    console.error('Email alert error:', error)
+    throw error
   }
 }
 
@@ -120,15 +112,14 @@ async function sendSMSAlert(phone: string, message: string, location: any) {
   try {
     // You would integrate with an SMS service like Twilio, AWS SNS, etc.
     // For now, we'll simulate the SMS sending
-    
-    const smsMessage = `🚨 EMERGENCY: Someone needs help! Location: ${location.latitude}, ${location.longitude} - Maps: https://maps.google.com/?q=${location.latitude},${location.longitude}`;
+
+    const smsMessage = `🚨 EMERGENCY: Someone needs help! Location: ${location.latitude}, ${location.longitude} - Maps: https://maps.google.com/?q=${location.latitude},${location.longitude}`
 
     // Simulate SMS sending (replace with actual SMS service)
-    console.log('Emergency SMS would be sent to:', phone);
-    return { success: true, contact: phone, method: 'sms' };
-
+    console.log('Emergency SMS would be sent to:', phone)
+    return { success: true, contact: phone, method: 'sms' }
   } catch (error) {
-    console.error('SMS alert error:', error);
-    throw error;
+    console.error('SMS alert error:', error)
+    throw error
   }
 }

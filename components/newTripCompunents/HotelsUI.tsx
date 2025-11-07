@@ -4,18 +4,18 @@ import React, { useState } from 'react'
 import { Hotel, Star, Wifi, Car, Coffee, MapPin } from 'lucide-react'
 
 interface HotelsUIProps {
-  onHotelSelect?: (hotelId: string, label: string) => void;
+  onHotelSelect?: (hotelId: string, label: string) => void
 }
 
 const HotelsUI = ({ onHotelSelect }: HotelsUIProps) => {
   const [selectedHotel, setSelectedHotel] = useState<string>('')
-  
+
   const handleHotelSelect = (hotelId: string, label: string) => {
-    setSelectedHotel(hotelId);
+    setSelectedHotel(hotelId)
     if (onHotelSelect) {
-      setTimeout(() => onHotelSelect(hotelId, label), 500);
+      setTimeout(() => onHotelSelect(hotelId, label), 500)
     }
-  };
+  }
 
   const hotels = [
     {
@@ -26,7 +26,7 @@ const HotelsUI = ({ onHotelSelect }: HotelsUIProps) => {
       image: '/api/placeholder/300/200',
       location: 'City Center',
       amenities: ['Free WiFi', 'Spa', 'Pool', 'Restaurant'],
-      description: 'Luxury 5-star hotel with world-class amenities'
+      description: 'Luxury 5-star hotel with world-class amenities',
     },
     {
       id: 'boutique',
@@ -36,7 +36,7 @@ const HotelsUI = ({ onHotelSelect }: HotelsUIProps) => {
       image: '/api/placeholder/300/200',
       location: 'Historic District',
       amenities: ['Free WiFi', 'Breakfast', 'Gym', 'Bar'],
-      description: 'Stylish boutique hotel with personalized service'
+      description: 'Stylish boutique hotel with personalized service',
     },
     {
       id: 'budget',
@@ -46,8 +46,8 @@ const HotelsUI = ({ onHotelSelect }: HotelsUIProps) => {
       image: '/api/placeholder/300/200',
       location: 'Near Airport',
       amenities: ['Free WiFi', 'Breakfast', 'Parking'],
-      description: 'Clean and comfortable budget-friendly option'
-    }
+      description: 'Clean and comfortable budget-friendly option',
+    },
   ]
 
   const renderStars = (rating: number) => {
@@ -72,7 +72,7 @@ const HotelsUI = ({ onHotelSelect }: HotelsUIProps) => {
       </div>
 
       <div className="grid gap-4 md:gap-6">
-        {hotels.map((hotel) => (
+        {hotels.map(hotel => (
           <div
             key={hotel.id}
             onClick={() => handleHotelSelect(hotel.id, hotel.name)}
@@ -88,7 +88,7 @@ const HotelsUI = ({ onHotelSelect }: HotelsUIProps) => {
                   <Hotel className="w-12 h-12 text-gray-400" />
                 </div>
               </div>
-              
+
               <div className="md:w-2/3 p-4 sm:p-6">
                 <div className="flex justify-between items-start mb-3">
                   <div>
@@ -123,16 +123,16 @@ const HotelsUI = ({ onHotelSelect }: HotelsUIProps) => {
                 </div>
 
                 <div className="mt-4 flex justify-between items-center">
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    selectedHotel === hotel.id
-                      ? 'border-primary bg-primary'
-                      : 'border-gray-300'
-                  }`}>
+                  <div
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      selectedHotel === hotel.id ? 'border-primary bg-primary' : 'border-gray-300'
+                    }`}
+                  >
                     {selectedHotel === hotel.id && (
                       <div className="w-2 h-2 bg-white rounded-full"></div>
                     )}
                   </div>
-                  
+
                   {selectedHotel === hotel.id && (
                     <span className="text-sm text-primary font-medium">Selected</span>
                   )}
@@ -146,7 +146,8 @@ const HotelsUI = ({ onHotelSelect }: HotelsUIProps) => {
       {selectedHotel && (
         <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
           <p className="text-sm text-primary font-medium">
-            ✓ Great choice! {hotels.find(h => h.id === selectedHotel)?.name} has been added to your trip plan.
+            ✓ Great choice! {hotels.find(h => h.id === selectedHotel)?.name} has been added to your
+            trip plan.
           </p>
         </div>
       )}

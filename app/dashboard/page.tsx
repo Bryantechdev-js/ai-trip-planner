@@ -6,17 +6,17 @@ import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  MapPin, 
-  Calendar, 
-  Users, 
-  DollarSign, 
-  Eye, 
-  Download, 
-  Share2, 
-  Trash2, 
-  Plus, 
-  Filter, 
+import {
+  MapPin,
+  Calendar,
+  Users,
+  DollarSign,
+  Eye,
+  Download,
+  Share2,
+  Trash2,
+  Plus,
+  Filter,
   Search,
   Clock,
   TrendingUp,
@@ -26,7 +26,7 @@ import {
   CreditCard,
   AlertTriangle,
   CheckCircle,
-  XCircle
+  XCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -65,22 +65,27 @@ const Dashboard = () => {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'destination'>('newest')
   const [tripLimitStatus, setTripLimitStatus] = useState<TripLimitStatus | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [notification, setNotification] = useState<{type: 'success' | 'error' | 'warning', message: string} | null>(null)
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error' | 'warning'
+    message: string
+  } | null>(null)
 
-  const trips = useQuery(api.trips.getUserTrips, user ? { userId: user.id } : 'skip') as Trip[] | undefined
+  const trips = useQuery(api.trips.getUserTrips, user ? { userId: user.id } : 'skip') as
+    | Trip[]
+    | undefined
   const deleteTrip = useMutation(api.trips.deleteTrip)
-  
+
   useEffect(() => {
     const fetchTripLimitStatus = async () => {
       if (!user) return
-      
+
       try {
         const response = await fetch('/api/trip-limit', {
           headers: {
-            'Authorization': `Bearer ${user.id}`
-          }
+            Authorization: `Bearer ${user.id}`,
+          },
         })
-        
+
         if (response.ok) {
           const data = await response.json()
           setTripLimitStatus(data)
@@ -91,23 +96,23 @@ const Dashboard = () => {
         setIsLoading(false)
       }
     }
-    
+
     fetchTripLimitStatus()
   }, [user])
-  
+
   const handleCreateTrip = async () => {
     if (!tripLimitStatus?.canCreateTrip) {
       setNotification({
         type: 'warning',
-        message: `You've reached your ${tripLimitStatus?.planLimits.intervalName} limit. Upgrade your plan to create more trips.`
+        message: `You've reached your ${tripLimitStatus?.planLimits.intervalName} limit. Upgrade your plan to create more trips.`,
       })
       setTimeout(() => router.push('/pricing'), 2000)
       return
     }
-    
+
     router.push('/create-trip')
   }
-  
+
   const handleDeleteTrip = async (tripId: string) => {
     if (confirm('Are you sure you want to delete this trip?')) {
       try {
@@ -118,35 +123,43 @@ const Dashboard = () => {
       }
     }
   }
-  
+
   const getSubscriptionColor = (subscription: string) => {
     switch (subscription) {
-      case 'pro': return 'text-blue-600 bg-blue-50'
-      case 'premium': return 'text-purple-600 bg-purple-50'
-      case 'enterprise': return 'text-yellow-600 bg-yellow-50'
-      default: return 'text-gray-600 bg-gray-50'
+      case 'pro':
+        return 'text-blue-600 bg-blue-50'
+      case 'premium':
+        return 'text-purple-600 bg-purple-50'
+      case 'enterprise':
+        return 'text-yellow-600 bg-yellow-50'
+      default:
+        return 'text-gray-600 bg-gray-50'
     }
   }
 
-  const filteredTrips = trips?.filter(trip => {
-    const matchesSearch = trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trip.sourceLocation?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = filterBy === 'all' || 
-                         (filterBy === 'public' && trip.isPublic) ||
-                         (filterBy === 'private' && !trip.isPublic)
-    return matchesSearch && matchesFilter
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'newest':
-        return b._creationTime - a._creationTime
-      case 'oldest':
-        return a._creationTime - b._creationTime
-      case 'destination':
-        return a.destination.localeCompare(b.destination)
-      default:
-        return 0
-    }
-  })
+  const filteredTrips = trips
+    ?.filter(trip => {
+      const matchesSearch =
+        trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        trip.sourceLocation?.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesFilter =
+        filterBy === 'all' ||
+        (filterBy === 'public' && trip.isPublic) ||
+        (filterBy === 'private' && !trip.isPublic)
+      return matchesSearch && matchesFilter
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return b._creationTime - a._creationTime
+        case 'oldest':
+          return a._creationTime - b._creationTime
+        case 'destination':
+          return a.destination.localeCompare(b.destination)
+        default:
+          return 0
+      }
+    })
 
   const handleDownloadTrip = (trip: Trip) => {
     const tripData = {
@@ -156,7 +169,7 @@ const Dashboard = () => {
       groupSize: trip.groupSize,
       budget: trip.budget,
       interests: trip.interests,
-      createdAt: new Date(trip._creationTime).toLocaleDateString()
+      createdAt: new Date(trip._creationTime).toLocaleDateString(),
     }
 
     const csvContent = [
@@ -167,8 +180,10 @@ const Dashboard = () => {
       ['Group Size', tripData.groupSize],
       ['Budget', tripData.budget],
       ['Interests', tripData.interests.join(', ')],
-      ['Created At', tripData.createdAt]
-    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n')
+      ['Created At', tripData.createdAt],
+    ]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n')
 
     const blob = new Blob([csvContent], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -184,7 +199,7 @@ const Dashboard = () => {
   const generateQRCode = (trip: Trip) => {
     const tripUrl = `${window.location.origin}/trip/${trip._id}`
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(tripUrl)}`
-    
+
     const newWindow = window.open('', '_blank')
     if (newWindow) {
       newWindow.document.write(`
@@ -238,19 +253,23 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Notification */}
         {notification && (
-          <div className={`mb-6 p-4 rounded-lg border flex items-center gap-2 ${
-            notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
-            notification.type === 'warning' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
-            'bg-red-50 border-red-200 text-red-800'
-          }`}>
+          <div
+            className={`mb-6 p-4 rounded-lg border flex items-center gap-2 ${
+              notification.type === 'success'
+                ? 'bg-green-50 border-green-200 text-green-800'
+                : notification.type === 'warning'
+                  ? 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                  : 'bg-red-50 border-red-200 text-red-800'
+            }`}
+          >
             {notification.type === 'success' && <CheckCircle className="w-5 h-5" />}
             {notification.type === 'warning' && <AlertTriangle className="w-5 h-5" />}
             {notification.type === 'error' && <XCircle className="w-5 h-5" />}
             <span>{notification.message}</span>
-            <button 
+            <button
               onClick={() => setNotification(null)}
               className="ml-auto text-current hover:opacity-70"
             >
@@ -267,25 +286,25 @@ const Dashboard = () => {
               type="text"
               placeholder="Search trips..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
-          
+
           <div className="flex gap-2">
             <select
               value={filterBy}
-              onChange={(e) => setFilterBy(e.target.value as any)}
+              onChange={e => setFilterBy(e.target.value as any)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="all">All Trips</option>
               <option value="public">Public</option>
               <option value="private">Private</option>
             </select>
-            
+
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={e => setSortBy(e.target.value as any)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="newest">Newest First</option>
@@ -308,29 +327,35 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Trips Remaining</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {isLoading ? '...' : tripLimitStatus?.remaining === -1 ? '∞' : tripLimitStatus?.remaining || 0}
+                    {isLoading
+                      ? '...'
+                      : tripLimitStatus?.remaining === -1
+                        ? '∞'
+                        : tripLimitStatus?.remaining || 0}
                   </p>
                 </div>
                 <Clock className="w-8 h-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Current Plan</p>
-                  <p className={`text-lg font-bold capitalize px-2 py-1 rounded-full text-sm ${
-                    getSubscriptionColor(tripLimitStatus?.subscription || 'basic')
-                  }`}>
+                  <p
+                    className={`text-lg font-bold capitalize px-2 py-1 rounded-full text-sm ${getSubscriptionColor(
+                      tripLimitStatus?.subscription || 'basic'
+                    )}`}
+                  >
                     {tripLimitStatus?.subscription || 'Basic'}
                   </p>
                 </div>
@@ -338,7 +363,7 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -353,26 +378,35 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
-        
+
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => handleCreateTrip()}>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => handleCreateTrip()}
+          >
             <CardContent className="p-6 text-center">
               <Plus className="w-12 h-12 text-primary mx-auto mb-4" />
               <h3 className="font-semibold text-gray-900 mb-2">Plan New Trip</h3>
               <p className="text-sm text-gray-600">Create your next adventure with AI assistance</p>
             </CardContent>
           </Card>
-          
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push('/tracking')}>
+
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => router.push('/tracking')}
+          >
             <CardContent className="p-6 text-center">
               <MapPin className="w-12 h-12 text-green-500 mx-auto mb-4" />
               <h3 className="font-semibold text-gray-900 mb-2">Track Location</h3>
               <p className="text-sm text-gray-600">Monitor your current trip progress</p>
             </CardContent>
           </Card>
-          
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push('/trends')}>
+
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => router.push('/trends')}
+          >
             <CardContent className="p-6 text-center">
               <TrendingUp className="w-12 h-12 text-orange-500 mx-auto mb-4" />
               <h3 className="font-semibent text-gray-900 mb-2">Explore Trends</h3>
@@ -384,18 +418,21 @@ const Dashboard = () => {
         {/* Trips Grid */}
         {filteredTrips && filteredTrips.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTrips.map((trip) => (
+            {filteredTrips.map(trip => (
               <Card key={trip._id} className="hover:shadow-lg transition-shadow overflow-hidden">
                 {/* Trip Cover Image */}
                 <div className="relative h-40 overflow-hidden">
-                  <img 
-                    src={(trip as any).coverImage || `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel,landmark,city`}
+                  <img
+                    src={
+                      (trip as any).coverImage ||
+                      `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel,landmark,city`
+                    }
                     alt={`${trip.destination} cover`}
                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
+                    onError={e => {
+                      const target = e.target as HTMLImageElement
                       if (!target.src.includes('picsum')) {
-                        target.src = `https://picsum.photos/1200/800?random=${Math.floor(Math.random() * 1000)}`;
+                        target.src = `https://picsum.photos/1200/800?random=${Math.floor(Math.random() * 1000)}`
                       }
                     }}
                     loading="lazy"
@@ -415,11 +452,15 @@ const Dashboard = () => {
                     ) : (
                       <div className="w-2 h-2 bg-gray-300 rounded-full" title="Private trip" />
                     )}
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      trip.status === 'active' ? 'bg-green-500 text-white' :
-                      trip.status === 'completed' ? 'bg-blue-500 text-white' :
-                      'bg-gray-500 text-white'
-                    }`}>
+                    <div
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        trip.status === 'active'
+                          ? 'bg-green-500 text-white'
+                          : trip.status === 'completed'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-500 text-white'
+                      }`}
+                    >
                       {trip.status || 'planned'}
                     </div>
                   </div>
@@ -440,13 +481,16 @@ const Dashboard = () => {
                         <span>{trip.budget}</span>
                       </div>
                     </div>
-                    
+
                     {trip.interests.length > 0 && (
                       <div>
                         <p className="text-xs font-medium text-gray-700 mb-2">Interests:</p>
                         <div className="flex flex-wrap gap-1">
                           {trip.interests.slice(0, 3).map((interest, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+                            >
                               {interest}
                             </span>
                           ))}
@@ -458,11 +502,11 @@ const Dashboard = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="text-xs text-gray-500 pt-2 border-t">
                       Created: {new Date(trip._creationTime).toLocaleDateString()}
                     </div>
-                    
+
                     <div className="flex gap-2 pt-3">
                       <Link href={`/trip/${trip._id}`} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full">
@@ -470,7 +514,7 @@ const Dashboard = () => {
                           View
                         </Button>
                       </Link>
-                      
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -479,7 +523,7 @@ const Dashboard = () => {
                       >
                         <Download className="w-4 h-4" />
                       </Button>
-                      
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -488,7 +532,7 @@ const Dashboard = () => {
                       >
                         <Share2 className="w-4 h-4" />
                       </Button>
-                      
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -513,10 +557,9 @@ const Dashboard = () => {
               {searchTerm || filterBy !== 'all' ? 'No trips found' : 'No trips yet'}
             </h3>
             <p className="text-gray-600 mb-6">
-              {searchTerm || filterBy !== 'all' 
-                ? 'Try adjusting your search or filters' 
-                : 'Start planning your first amazing journey!'
-              }
+              {searchTerm || filterBy !== 'all'
+                ? 'Try adjusting your search or filters'
+                : 'Start planning your first amazing journey!'}
             </p>
             {!searchTerm && filterBy === 'all' && (
               <Link href="/create-trip">

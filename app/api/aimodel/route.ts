@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import OpenAI from 'openai';
-import { aj } from "../arcjet/route";
-import { currentUser } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from 'next/server'
+import OpenAI from 'openai'
+import { aj } from '../arcjet/route'
+import { currentUser } from '@clerk/nextjs/server'
 
 const prompt = `You are a PROFESSIONAL TRAVEL AGENCY AI CONSULTANT representing "DreamTrip Adventures" - a premium travel planning service. You are an expert travel advisor with 15+ years of experience helping clients create unforgettable journeys.
 
@@ -120,145 +120,162 @@ UI RULES:
 - Use "welcome-consultation" ONLY for the very first message
 - Use empty string "" for UI when just asking questions (steps 2-3)
 - Use specific UI components for steps 4-12 as listed above
-- NEVER use UI components out of sequence`;
+- NEVER use UI components out of sequence`
 
 const openai = new OpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY
-});
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.OPENROUTER_API_KEY,
+})
 
 export async function POST(req: NextRequest) {
-    try {
-        const body = await req.json();
-        const messages = body.message || body.messages;
-        const userId = body.userId || "anonymous_user";
-        
-        // Check trip limit before processing any trip planning request
-        if (userId !== "anonymous_user") {
-            try {
-                const limitResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/trip-limit`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${userId}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (limitResponse.status === 429) {
-                    const limitData = await limitResponse.json();
-                    return NextResponse.json({ 
-                        resp: `🚫 ${limitData.message || 'Trip limit reached!'} [Upgrade your plan](/pricing) to create more trips.`, 
-                        ui: "pricing-redirect",
-                        upgradeRequired: true,
-                        planLimits: limitData.planLimits
-                    }, { status: 429 });
-                }
-            } catch (limitError) {
-                console.error('Trip limit check error:', limitError);
-                return NextResponse.json({ 
-                    resp: "Unable to verify trip limits. Please try again.", 
-                    ui: "" 
-                }, { status: 500 });
-            }
-        }
+  try {
+    const body = await req.json()
+    const messages = body.message || body.messages
+    const userId = body.userId || 'anonymous_user'
 
-        if (!messages || !Array.isArray(messages)) {
-            return NextResponse.json({ 
-                resp: "I need your message to help you plan your trip.", 
-                ui: "" 
-            });
+    // Check trip limit before processing any trip planning request
+    if (userId !== 'anonymous_user') {
+      try {
+        const limitResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/trip-limit`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${userId}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        )
+
+        if (limitResponse.status === 429) {
+          const limitData = await limitResponse.json()
+          return NextResponse.json(
+            {
+              resp: `🚫 ${limitData.message || 'Trip limit reached!'} [Upgrade your plan](/pricing) to create more trips.`,
+              ui: 'pricing-redirect',
+              upgradeRequired: true,
+              planLimits: limitData.planLimits,
+            },
+            { status: 429 }
+          )
         }
-        
-        const completion = await openai.chat.completions.create({
-            model: 'openai/gpt-4o-mini',
-            response_format: { type: 'json_object' },
-            messages: [
-                { role: 'system', content: prompt },
-                ...messages.map(msg => ({
-                    role: msg.role,
-                    content: msg.content
-                }))
-            ],
-            temperature: 0.7,
-            max_tokens: 2000
-        });
-        
-        const response = completion.choices[0]?.message?.content;
-        if (!response) {
-            return NextResponse.json({ 
-                resp: "I apologize, but I'm having trouble generating a response. Please try again.", 
-                ui: "" 
-            });
-        }
-        
-        let parsedResponse;
-        try {
-            parsedResponse = JSON.parse(response);
-        } catch (error) {
-            console.error('JSON parsing error:', error);
-            return NextResponse.json({ 
-                resp: "I'm having trouble processing your request. Please try again.", 
-                ui: "" 
-            });
-        }
-        
-        // Store trip data and trigger automation if destination is mentioned
-        if (parsedResponse.destination || parsedResponse.source) {
-            try {
-                // Store location data and trigger automation
-                await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/location-data`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId,
-                        destination: parsedResponse.destination,
-                        source: parsedResponse.source,
-                        timestamp: new Date().toISOString()
-                    })
-                });
-                
-                // Trigger automation features
-                if (parsedResponse.destination) {
-                    const automationPromises = [
-                        fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/weather`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ destination: parsedResponse.destination, userId })
-                        }),
-                        fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/safety`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ destination: parsedResponse.destination, userId })
-                        }),
-                        fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/smart-recommendations`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ destination: parsedResponse.destination, userId })
-                        })
-                    ];
-                    Promise.allSettled(automationPromises).catch(console.error);
-                }
-            } catch (error) {
-                console.error('Automation trigger error:', error);
-            }
-        }
-        
-        if (parsedResponse.ui === 'final-plan') {
-            parsedResponse.automation = {
-                booking: 'Auto-booking available for hotels and flights',
-                tracking: 'Real-time expense tracking enabled',
-                safety: 'Emergency monitoring activated',
-                notifications: 'Smart alerts configured'
-            };
-        }
-        
-        return NextResponse.json(parsedResponse);
-        
-    } catch (error) {
-        console.error('AI model error:', error);
-        return NextResponse.json({ 
-            resp: "I'm experiencing technical difficulties. Please try again in a moment.", 
-            ui: "" 
-        }, { status: 500 });
+      } catch (limitError) {
+        console.error('Trip limit check error:', limitError)
+        return NextResponse.json(
+          {
+            resp: 'Unable to verify trip limits. Please try again.',
+            ui: '',
+          },
+          { status: 500 }
+        )
+      }
     }
+
+    if (!messages || !Array.isArray(messages)) {
+      return NextResponse.json({
+        resp: 'I need your message to help you plan your trip.',
+        ui: '',
+      })
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: 'openai/gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: prompt },
+        ...messages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+    })
+
+    const response = completion.choices[0]?.message?.content
+    if (!response) {
+      return NextResponse.json({
+        resp: "I apologize, but I'm having trouble generating a response. Please try again.",
+        ui: '',
+      })
+    }
+
+    let parsedResponse
+    try {
+      parsedResponse = JSON.parse(response)
+    } catch (error) {
+      console.error('JSON parsing error:', error)
+      return NextResponse.json({
+        resp: "I'm having trouble processing your request. Please try again.",
+        ui: '',
+      })
+    }
+
+    // Store trip data and trigger automation if destination is mentioned
+    if (parsedResponse.destination || parsedResponse.source) {
+      try {
+        // Store location data and trigger automation
+        await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/location-data`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              destination: parsedResponse.destination,
+              source: parsedResponse.source,
+              timestamp: new Date().toISOString(),
+            }),
+          }
+        )
+
+        // Trigger automation features
+        if (parsedResponse.destination) {
+          const automationPromises = [
+            fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/weather`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ destination: parsedResponse.destination, userId }),
+            }),
+            fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/safety`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ destination: parsedResponse.destination, userId }),
+            }),
+            fetch(
+              `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/smart-recommendations`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ destination: parsedResponse.destination, userId }),
+              }
+            ),
+          ]
+          Promise.allSettled(automationPromises).catch(console.error)
+        }
+      } catch (error) {
+        console.error('Automation trigger error:', error)
+      }
+    }
+
+    if (parsedResponse.ui === 'final-plan') {
+      parsedResponse.automation = {
+        booking: 'Auto-booking available for hotels and flights',
+        tracking: 'Real-time expense tracking enabled',
+        safety: 'Emergency monitoring activated',
+        notifications: 'Smart alerts configured',
+      }
+    }
+
+    return NextResponse.json(parsedResponse)
+  } catch (error) {
+    console.error('AI model error:', error)
+    return NextResponse.json(
+      {
+        resp: "I'm experiencing technical difficulties. Please try again in a moment.",
+        ui: '',
+      },
+      { status: 500 }
+    )
+  }
 }

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Calendar, Clock, Minus, Plus } from 'lucide-react'
 
 interface TripDurationUIProps {
-  onDurationSelect?: (duration: number, label: string) => void;
+  onDurationSelect?: (duration: number, label: string) => void
 }
 
 const TripDurationUI = ({ onDurationSelect }: TripDurationUIProps) => {
@@ -16,16 +16,16 @@ const TripDurationUI = ({ onDurationSelect }: TripDurationUIProps) => {
     { days: 7, label: 'One Week', description: 'Ideal for most destinations' },
     { days: 14, label: 'Two Weeks', description: 'Extended exploration' },
     { days: 21, label: 'Three Weeks', description: 'Deep cultural immersion' },
-    { days: 30, label: 'One Month', description: 'Ultimate adventure' }
+    { days: 30, label: 'One Month', description: 'Ultimate adventure' },
   ]
 
   const handleDurationSelect = (days: number, label: string) => {
-    setSelectedDuration(days);
-    setCustomDays(days);
+    setSelectedDuration(days)
+    setCustomDays(days)
     if (onDurationSelect) {
-      setTimeout(() => onDurationSelect(days, `${days} days`), 500);
+      setTimeout(() => onDurationSelect(days, `${days} days`), 500)
     }
-  };
+  }
 
   const handleCustomDaysChange = (increment: boolean) => {
     if (increment && customDays < 365) {
@@ -49,7 +49,7 @@ const TripDurationUI = ({ onDurationSelect }: TripDurationUIProps) => {
 
       {/* Preset Duration Options */}
       <div className="grid gap-3 mb-6">
-        {durationOptions.map((option) => (
+        {durationOptions.map(option => (
           <div
             key={option.days}
             onClick={() => handleDurationSelect(option.days, option.label)}
@@ -61,28 +61,32 @@ const TripDurationUI = ({ onDurationSelect }: TripDurationUIProps) => {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  selectedDuration === option.days ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600'
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    selectedDuration === option.days
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}
+                >
                   <Clock className="w-4 h-4" />
                 </div>
-                
+
                 <div>
                   <h4 className="font-semibold text-gray-800">{option.label}</h4>
                   <p className="text-sm text-gray-600">{option.description}</p>
                 </div>
               </div>
-              
+
               <div className="text-right">
                 <div className="text-lg font-bold text-primary">{option.days}</div>
                 <div className="text-xs text-gray-600">days</div>
               </div>
-              
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                selectedDuration === option.days
-                  ? 'border-primary bg-primary'
-                  : 'border-gray-300'
-              }`}>
+
+              <div
+                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                  selectedDuration === option.days ? 'border-primary bg-primary' : 'border-gray-300'
+                }`}
+              >
                 {selectedDuration === option.days && (
                   <div className="w-2 h-2 bg-white rounded-full"></div>
                 )}
@@ -103,12 +107,12 @@ const TripDurationUI = ({ onDurationSelect }: TripDurationUIProps) => {
           >
             <Minus className="w-4 h-4" />
           </button>
-          
+
           <div className="text-center">
             <div className="text-3xl font-bold text-primary">{customDays}</div>
             <div className="text-sm text-gray-600">days</div>
           </div>
-          
+
           <button
             onClick={() => handleCustomDaysChange(true)}
             disabled={customDays >= 365}
@@ -117,7 +121,7 @@ const TripDurationUI = ({ onDurationSelect }: TripDurationUIProps) => {
             <Plus className="w-4 h-4" />
           </button>
         </div>
-        
+
         <div className="mt-3 text-center">
           <button
             onClick={() => handleDurationSelect(customDays, `${customDays} days`)}
@@ -133,13 +137,21 @@ const TripDurationUI = ({ onDurationSelect }: TripDurationUIProps) => {
         <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
           <div className="flex items-center gap-2 mb-2">
             <Calendar className="w-4 h-4 text-primary" />
-            <span className="font-medium text-primary">Selected Duration: {selectedDuration} days</span>
+            <span className="font-medium text-primary">
+              Selected Duration: {selectedDuration} days
+            </span>
           </div>
           <p className="text-sm text-gray-600">
-            {selectedDuration <= 3 && "Perfect for a quick getaway with highlights of your destination."}
-            {selectedDuration > 3 && selectedDuration <= 7 && "Great duration to explore main attractions and get a good feel for the place."}
-            {selectedDuration > 7 && selectedDuration <= 14 && "Excellent choice for deeper exploration and experiencing local culture."}
-            {selectedDuration > 14 && "Amazing opportunity for comprehensive travel and authentic experiences."}
+            {selectedDuration <= 3 &&
+              'Perfect for a quick getaway with highlights of your destination.'}
+            {selectedDuration > 3 &&
+              selectedDuration <= 7 &&
+              'Great duration to explore main attractions and get a good feel for the place.'}
+            {selectedDuration > 7 &&
+              selectedDuration <= 14 &&
+              'Excellent choice for deeper exploration and experiencing local culture.'}
+            {selectedDuration > 14 &&
+              'Amazing opportunity for comprehensive travel and authentic experiences.'}
           </p>
         </div>
       )}
