@@ -13,6 +13,7 @@ import TripDetailsUI from './newTripCompunents/TripDetailsUI'
 import TripMapUI from './newTripCompunents/TripMapUI'
 import VirtualTourUI from './newTripCompunents/VirtualTourUI'
 import FinalPlanUI from './newTripCompunents/FinalPlanUI'
+import WelcomeConsultationUI from './newTripCompunents/WelcomeConsultationUI'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -24,8 +25,8 @@ const TripPlannerChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: 'Hello! I\'m your AI Trip Planner. I\'ll help you create the perfect trip by asking you a few questions. Let\'s start with the basics - where are you traveling from?',
-      ui: 'welcome'
+      content: 'Welcome to DreamTrip Adventures! I\'m your personal AI travel consultant, and I\'m thrilled to help you plan your perfect trip. Let\'s start by choosing the type of consultation that best fits your needs.',
+      ui: 'welcome-consultation'
     }
   ])
   const [input, setInput] = useState('')
@@ -164,6 +165,8 @@ const TripPlannerChat = () => {
 
   const renderUIComponent = (uiType: string) => {
     switch (uiType) {
+      case 'welcome-consultation':
+        return <WelcomeConsultationUI onStartConsultation={(type) => handleUISelection(type, 'consultation type')} />
       case 'budgeting':
         return <BudgetingUI onBudgetSelect={(budget, label) => handleUISelection(label, 'budget')} />
       case 'GroupSize':

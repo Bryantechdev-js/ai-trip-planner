@@ -12,7 +12,11 @@ interface VirtualLocation {
   coordinates?: { lat: number, lng: number }
 }
 
-const VirtualTourUI = () => {
+interface VirtualTourUIProps {
+  onContinue?: () => void;
+}
+
+const VirtualTourUI = ({ onContinue }: VirtualTourUIProps) => {
   const { tripData } = useTripContext()
   const [currentLocation, setCurrentLocation] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -34,38 +38,59 @@ const VirtualTourUI = () => {
   }, [tripData.destination])
 
   const getVirtualTourLocations = async (destination: string): Promise<VirtualLocation[]> => {
-    // Get coordinates for the destination
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination)}&limit=1`
-      )
-      const data = await response.json()
+      // Get coordinates from our location API first
+      const locationResponse = await fetch('/api/location-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ destination })
+      })
       
-      if (data[0]) {
-        const lat = parseFloat(data[0].lat)
-        const lng = parseFloat(data[0].lon)
+      let lat = 0, lng = 0
+      
+      if (locationResponse.ok) {
+        const locationData = await locationResponse.json()
+        if (locationData.coordinates) {
+          lat = locationData.coordinates.lat
+          lng = locationData.coordinates.lng
+        }
+      }
+      
+      // Fallback to Nominatim if no coordinates
+      if (lat === 0 && lng === 0) {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination)}&limit=1`
+        )
+        const data = await response.json()
         
+        if (data[0]) {
+          lat = parseFloat(data[0].lat)
+          lng = parseFloat(data[0].lon)
+        }
+      }
+      
+      if (lat !== 0 && lng !== 0) {
         return [
           {
             name: `${destination} City Center`,
             description: `Explore the heart of ${destination} with this immersive 360° view.`,
-            panoramaUrl: `https://www.google.com/maps/embed?pb=!4v1234567890!6m8!1m7!1s${generateStreetViewId()}!2m2!1d${lat}!2d${lng}!3f0!4f0!5f0.7820865974627469`,
-            streetViewUrl: `https://www.google.com/maps/@${lat},${lng},3a,75y,0h,90t/data=!3m7!1e1!3m5!1s${generateStreetViewId()}!2e0!6shttps:%2F%2Fstreetviewpixels-pa.googleapis.com!7i16384!8i8192`,
+            panoramaUrl: `https://www.google.com/maps/embed?pb=!4v${Date.now()}!6m8!1m7!1sCAoSLEFGMVFpcE1fVXBkdE1QRXE0QnNEUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVE!2m2!1d${lat}!2d${lng}!3f0!4f0!5f0.7820865974627469`,
+            streetViewUrl: `https://www.google.com/maps/@${lat},${lng},3a,75y,0h,90t/data=!3m6!1e1!3m4!1s${generateStreetViewId()}!2e0!7i16384!8i8192`,
             coordinates: { lat, lng }
           },
           {
-            name: `${destination} Main Square`,
-            description: `Visit the main square and see the bustling life of ${destination}.`,
-            panoramaUrl: `https://www.google.com/maps/embed?pb=!4v1234567891!6m8!1m7!1s${generateStreetViewId()}!2m2!1d${lat + 0.001}!2d${lng + 0.001}!3f90!4f0!5f0.7820865974627469`,
-            streetViewUrl: `https://www.google.com/maps/@${lat + 0.001},${lng + 0.001},3a,75y,90h,90t/data=!3m7!1e1!3m5!1s${generateStreetViewId()}!2e0`,
-            coordinates: { lat: lat + 0.001, lng: lng + 0.001 }
+            name: `${destination} Main Area`,
+            description: `Discover the main attractions and local life of ${destination}.`,
+            panoramaUrl: `https://www.google.com/maps/embed?pb=!4v${Date.now() + 1}!6m8!1m7!1sCAoSLEFGMVFpcE1fVXBkdE1QRXE0QnNEUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVE!2m2!1d${lat + 0.002}!2d${lng + 0.002}!3f90!4f0!5f0.7820865974627469`,
+            streetViewUrl: `https://www.google.com/maps/@${lat + 0.002},${lng + 0.002},3a,75y,90h,90t/data=!3m6!1e1!3m4!1s${generateStreetViewId()}!2e0!7i16384!8i8192`,
+            coordinates: { lat: lat + 0.002, lng: lng + 0.002 }
           },
           {
-            name: `${destination} Historic District`,
-            description: `Step back in time and explore the historic areas of ${destination}.`,
-            panoramaUrl: `https://www.google.com/maps/embed?pb=!4v1234567892!6m8!1m7!1s${generateStreetViewId()}!2m2!1d${lat - 0.001}!2d${lng - 0.001}!3f180!4f0!5f0.7820865974627469`,
-            streetViewUrl: `https://www.google.com/maps/@${lat - 0.001},${lng - 0.001},3a,75y,180h,90t/data=!3m7!1e1!3m5!1s${generateStreetViewId()}!2e0`,
-            coordinates: { lat: lat - 0.001, lng: lng - 0.001 }
+            name: `${destination} Landmarks`,
+            description: `Visit the most famous landmarks and historic sites of ${destination}.`,
+            panoramaUrl: `https://www.google.com/maps/embed?pb=!4v${Date.now() + 2}!6m8!1m7!1sCAoSLEFGMVFpcE1fVXBkdE1QRXE0QnNEUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVE!2m2!1d${lat - 0.002}!2d${lng - 0.002}!3f180!4f0!5f0.7820865974627469`,
+            streetViewUrl: `https://www.google.com/maps/@${lat - 0.002},${lng - 0.002},3a,75y,180h,90t/data=!3m6!1e1!3m4!1s${generateStreetViewId()}!2e0!7i16384!8i8192`,
+            coordinates: { lat: lat - 0.002, lng: lng - 0.002 }
           }
         ]
       }
@@ -73,13 +98,13 @@ const VirtualTourUI = () => {
       console.error('Error generating virtual tour:', error)
     }
     
-    // Fallback locations
+    // Enhanced fallback with better Street View integration
     return [
       {
-        name: `${destination} Overview`,
-        description: `Get an overview of ${destination} from this panoramic viewpoint.`,
-        panoramaUrl: `https://www.google.com/maps/embed?pb=!4v1234567890!6m8!1m7!1sCAoSLEFGMVFpcE1fVXBkdE1QRXE0QnNEUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVE!2m2!1d0!2d0!3f0!4f0!5f0.7820865974627469`,
-        streetViewUrl: '#'
+        name: `${destination} Virtual Tour`,
+        description: `Experience ${destination} through immersive 360° street views and explore the city virtually.`,
+        panoramaUrl: `https://www.google.com/maps/embed?pb=!4v${Date.now()}!6m8!1m7!1sCAoSLEFGMVFpcE1fVXBkdE1QRXE0QnNEUVFRUVFRUVFRUVFRUVFRUVFRUVFRUVE!2m2!1d0!2d0!3f0!4f0!5f0.7820865974627469`,
+        streetViewUrl: `https://www.google.com/maps/search/${encodeURIComponent(destination)}/@?api=1&map_action=pano`
       }
     ]
   }
@@ -107,10 +132,15 @@ const VirtualTourUI = () => {
     if (locations[currentLocation]?.streetViewUrl && locations[currentLocation].streetViewUrl !== '#') {
       window.open(locations[currentLocation].streetViewUrl, '_blank')
     } else {
-      // Fallback to Google Maps search
-      const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(tripData.destination)}/@?api=1&map_action=pano`
+      // Enhanced Google Maps Street View URL
+      const searchUrl = `https://www.google.com/maps/search/${encodeURIComponent(tripData.destination)}/@?api=1&map_action=pano&viewpoint=${locations[currentLocation]?.coordinates?.lat || 0},${locations[currentLocation]?.coordinates?.lng || 0}`
       window.open(searchUrl, '_blank')
     }
+  }
+  
+  const openYouTubeVirtualTour = () => {
+    const youtubeUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(tripData.destination + ' virtual tour 4k walking tour')}`
+    window.open(youtubeUrl, '_blank')
   }
 
   if (!tripData.destination) {
@@ -187,12 +217,22 @@ const VirtualTourUI = () => {
                   <RotateCcw className="w-4 h-4 text-purple-600" />
                 </button>
               </div>
-              <button 
-                onClick={openFullscreen}
-                className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-lg"
-              >
-                <ExternalLink className="w-4 h-4 text-purple-600" />
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={openFullscreen}
+                  className="p-2 bg-white/90 rounded-full hover:bg-white transition-colors shadow-lg"
+                  title="Open in Google Street View"
+                >
+                  <ExternalLink className="w-4 h-4 text-purple-600" />
+                </button>
+                <button 
+                  onClick={openYouTubeVirtualTour}
+                  className="p-2 bg-red-500/90 rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                  title="Watch YouTube Virtual Tour"
+                >
+                  <Play className="w-4 h-4 text-white" />
+                </button>
+              </div>
             </div>
           </div>
           
@@ -265,34 +305,52 @@ const VirtualTourUI = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                <Camera className="w-3 h-3 text-white" />
+          <div className="space-y-4">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Camera className="w-3 h-3 text-white" />
+                </div>
+                <span className="font-semibold text-blue-800">Virtual Tour Features</span>
               </div>
-              <span className="font-semibold text-blue-800">Virtual Tour Features</span>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                  <span>Real Google Street View integration</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                  <span>360° panoramic exploration</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                  <span>YouTube virtual tours available</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-blue-700">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                  <span>Multiple viewpoints per destination</span>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-1 gap-2">
-              <div className="flex items-center gap-2 text-sm text-blue-700">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                <span>Real Google Street View integration</span>
+            
+            <div className="bg-gradient-to-br from-red-50 to-pink-50 p-4 rounded-lg border border-red-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center">
+                    <Play className="w-3 h-3 text-white" />
+                  </div>
+                  <span className="font-semibold text-red-800">Video Tours</span>
+                </div>
+                <button
+                  onClick={openYouTubeVirtualTour}
+                  className="px-3 py-1 bg-red-600 text-white rounded-full text-xs hover:bg-red-700 transition-colors"
+                >
+                  Watch Now
+                </button>
               </div>
-              <div className="flex items-center gap-2 text-sm text-blue-700">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                <span>360° panoramic exploration</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-blue-700">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                <span>Auto-play tour mode available</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-blue-700">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                <span>Full-screen viewing option</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-blue-700">
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                <span>Multiple viewpoints per destination</span>
-              </div>
+              <p className="text-sm text-red-700">
+                Experience {tripData.destination} through immersive 4K walking tours and drone footage on YouTube.
+              </p>
             </div>
           </div>
         </div>
@@ -331,6 +389,16 @@ const VirtualTourUI = () => {
           </div>
         </div>
       )}
+
+      {/* Continue Button */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={onContinue}
+          className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
+        >
+          Generate Final Trip Plan
+        </button>
+      </div>
     </div>
   )
 }

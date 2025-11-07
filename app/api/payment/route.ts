@@ -57,6 +57,17 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
 
+    // Validate phone number format for mobile money
+    if (paymentMethod === 'momo') {
+      const phoneRegex = /^(237)?[67]\d{8}$/
+      const cleanPhone = phoneNumber.replace(/\s+/g, '')
+      if (!phoneRegex.test(cleanPhone)) {
+        return NextResponse.json({ 
+          error: 'Invalid phone number format. Please use a valid Cameroon mobile number (MTN or Orange)' 
+        }, { status: 400 })
+      }
+    }
+
     const planDetails = PLAN_PRICING[planId]
     if (!planDetails) {
       return NextResponse.json({ 
@@ -64,78 +75,102 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
 
-    // Generate transaction ID
-    const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    // Generate unique order ID
+    const orderId = `trip_${planId}_${userId}_${Date.now()}`
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     
-    // Mock payment processing with Lygosap API
-    const paymentData = {
-      transactionId,
-      amount: planDetails.price,
-      currency: planDetails.currency,
-      status: 'pending',
-      paymentMethod,
-      phoneNumber: paymentMethod === 'momo' ? phoneNumber : undefined,
-      planId,
-      userId,
-      timestamp: Date.now()
-    }
-
-    console.log('Processing payment:', paymentData)
-
-    // Simulate payment processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    // Mock successful payment (95% success rate)
-    const success = Math.random() > 0.05
-
-    if (success) {
-      // Calculate due date
-      const dueDate = Date.now() + (planDetails.duration * 24 * 60 * 60 * 1000)
+    try {
+      // Prepare Lygos API payment request for mobile money
+      const cleanPhone = phoneNumber ? phoneNumber.replace(/\s+/g, '') : '';
+      const formattedPhone = cleanPhone.startsWith('237') ? cleanPhone : `237${cleanPhone}`;
       
-      try {
-        // Update user subscription in Convex
-        await convex.mutation(api.CreateNewUser.updateUserSubscription, {
-          userId,
-          subscription: planId,
-          dueDate,
-          paymentDetails: {
-            planId,
-            amount: planDetails.price.toString(),
-            currency: planDetails.currency,
-            status: 'completed'
-          }
-        })
+      // Determine network based on phone number prefix
+      const getNetworkProvider = (phone: string) => {
+        const phoneDigits = phone.replace(/\D/g, '')
+        const prefix = phoneDigits.startsWith('237') ? phoneDigits.substring(3, 5) : phoneDigits.substring(0, 2)
         
-        return NextResponse.json({
-          success: true,
-          transactionId: paymentData.transactionId,
-          status: 'completed',
-          message: `Payment successful! Your ${planId} plan is now active.`,
-          planDetails: {
-            ...planDetails,
-            dueDate: new Date(dueDate).toISOString(),
-            planId
-          }
-        })
-      } catch (convexError) {
-        console.error('Error updating subscription:', convexError)
-        return NextResponse.json({
-          success: true,
-          transactionId: paymentData.transactionId,
-          status: 'completed',
-          message: 'Payment successful! Please contact support to activate your subscription.',
-          warning: 'Subscription update pending'
-        })
+        // MTN prefixes: 67, 68, 65, 66
+        if (['67', '68', '65', '66'].includes(prefix)) {
+          return 'MTN'
+        }
+        // Orange prefixes: 69, 77, 78, 79
+        if (['69', '77', '78', '79'].includes(prefix)) {
+          return 'ORANGE'
+        }
+        // Default to Orange for other 7x numbers
+        if (prefix.startsWith('7')) {
+          return 'ORANGE'
+        }
+        return 'MTN' // Default fallback
       }
-    } else {
+      
+      const networkProvider = getNetworkProvider(formattedPhone)
+      
+      // Use the same payload structure for both payment methods
+      const lygosPayload = {
+        amount: planDetails.price,
+        shop_name: 'AI Trip Planner',
+        message: `${planId} subscription - AI Trip Planner`,
+        success_url: `${baseUrl}/api/payment/callback?status=success&orderId=${orderId}&userId=${userId}&planId=${planId}`,
+        failure_url: `${baseUrl}/api/payment/callback?status=failed&orderId=${orderId}`,
+        order_id: orderId
+      }
+
+      console.log('Initiating Lygos payment:', lygosPayload)
+
+      // For mobile money, use the same gateway endpoint but with different payload structure
+      const apiEndpoint = 'https://api.lygosapp.com/v1/gateway';
+        
+      const lygosResponse = await fetch(apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.LYGOSAP_API_KEY}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(lygosPayload)
+      })
+
+      const lygosResult = await lygosResponse.json()
+
+      if (!lygosResponse.ok) {
+        console.error('Lygos API error:', lygosResult)
+        return NextResponse.json({
+          success: false,
+          error: 'Payment gateway error. Please try again.'
+        }, { status: 400 })
+      }
+
+      // Store payment details temporarily (you might want to use a database for this)
+      const paymentData = {
+        orderId,
+        userId,
+        planId,
+        amount: planDetails.price,
+        currency: planDetails.currency,
+        paymentMethod,
+        phoneNumber: paymentMethod === 'momo' ? phoneNumber : undefined,
+        status: 'pending',
+        timestamp: Date.now(),
+        lygosTransactionId: lygosResult.transaction_id || lygosResult.id
+      }
+
+      console.log('Payment initiated:', paymentData)
+
+      return NextResponse.json({
+        success: true,
+        orderId,
+        paymentUrl: lygosResult.link || lygosResult.payment_url || lygosResult.checkout_url,
+        message: 'Redirecting to payment page...',
+        transactionId: lygosResult.id || lygosResult.transaction_id
+      });
+
+    } catch (lygosError) {
+      console.error('Lygos API call failed:', lygosError)
       return NextResponse.json({
         success: false,
-        status: 'failed',
-        message: paymentMethod === 'momo' 
-          ? 'Mobile Money payment failed. Please check your balance and try again.'
-          : 'Card payment failed. Please check your card details and try again.',
-        transactionId: paymentData.transactionId
-      }, { status: 400 })
+        error: 'Payment service unavailable. Please try again later.'
+      }, { status: 500 })
     }
 
   } catch (error) {

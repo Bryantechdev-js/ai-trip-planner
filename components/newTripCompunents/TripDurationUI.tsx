@@ -23,7 +23,7 @@ const TripDurationUI = ({ onDurationSelect }: TripDurationUIProps) => {
     setSelectedDuration(days);
     setCustomDays(days);
     if (onDurationSelect) {
-      setTimeout(() => onDurationSelect(days, label), 500);
+      setTimeout(() => onDurationSelect(days, `${days} days`), 500);
     }
   };
 

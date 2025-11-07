@@ -3,8 +3,19 @@
 import React, { useState } from 'react'
 import { Hotel, Star, Wifi, Car, Coffee, MapPin } from 'lucide-react'
 
-const HotelsUI = () => {
+interface HotelsUIProps {
+  onHotelSelect?: (hotelId: string, label: string) => void;
+}
+
+const HotelsUI = ({ onHotelSelect }: HotelsUIProps) => {
   const [selectedHotel, setSelectedHotel] = useState<string>('')
+  
+  const handleHotelSelect = (hotelId: string, label: string) => {
+    setSelectedHotel(hotelId);
+    if (onHotelSelect) {
+      setTimeout(() => onHotelSelect(hotelId, label), 500);
+    }
+  };
 
   const hotels = [
     {
@@ -64,7 +75,7 @@ const HotelsUI = () => {
         {hotels.map((hotel) => (
           <div
             key={hotel.id}
-            onClick={() => setSelectedHotel(hotel.id)}
+            onClick={() => handleHotelSelect(hotel.id, hotel.name)}
             className={`border-2 rounded-xl cursor-pointer transition-all duration-200 overflow-hidden ${
               selectedHotel === hotel.id
                 ? 'border-primary bg-primary/5 shadow-lg'

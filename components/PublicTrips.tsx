@@ -26,8 +26,8 @@ export default function PublicTrips() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Discover Amazing Trips</h2>
-        <p className="text-gray-600 mb-4">Get inspired by trips planned by other travelers</p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Discover Amazing Trips</h2>
+        <p className="text-gray-600 mb-4 px-4">Get inspired by trips planned by other travelers</p>
         
         {/* Destination Filter */}
         {destinations.length > 0 && (
@@ -66,27 +66,40 @@ export default function PublicTrips() {
           <p className="text-gray-500">Be the first to share your amazing trip plan!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {publicTrips.map((trip) => (
-            <Card key={trip._id} className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                      <MapPin className="w-5 h-5 text-primary" />
-                      {trip.destination}
-                    </CardTitle>
-                    <p className="text-sm text-gray-500 mt-1">
-                      From {trip.sourceLocation}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-gray-400">
-                      {new Date(trip.createdAt).toLocaleDateString()}
-                    </div>
+            <Card key={trip._id} className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md overflow-hidden">
+              {/* Trip Cover Image */}
+              <div className="relative h-48 overflow-hidden">
+                <img 
+                  src={trip.coverImage || `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel,landmark,city`}
+                  alt={`${trip.destination} cover`}
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    // Try different fallback images
+                    if (!target.src.includes('picsum')) {
+                      target.src = `https://picsum.photos/1200/800?random=${Math.floor(Math.random() * 1000)}`;
+                    }
+                  }}
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3">
+                  <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-white" />
+                    {trip.destination}
+                  </CardTitle>
+                  <p className="text-sm text-white/80 mt-1">
+                    From {trip.sourceLocation}
+                  </p>
+                </div>
+                <div className="absolute top-3 right-3">
+                  <div className="text-xs text-white/80 bg-black/30 backdrop-blur-sm rounded-full px-2 py-1">
+                    {new Date(trip.createdAt).toLocaleDateString()}
                   </div>
                 </div>
-              </CardHeader>
+              </div>
               <CardContent className="space-y-4">
                 {/* Trip Stats */}
                 <div className="grid grid-cols-2 gap-3">

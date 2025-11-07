@@ -7,6 +7,7 @@ import { calculateDistance, estimateTravelTime, formatDuration, getRouteType, ty
 interface TripMapUIProps {
   source?: string;
   destination?: string;
+  onContinue?: () => void;
 }
 
 interface RouteData {
@@ -16,7 +17,7 @@ interface RouteData {
   type: 'flight' | 'ground';
 }
 
-const TripMapUI = ({ source = 'New York', destination = 'Paris' }: TripMapUIProps) => {
+const TripMapUI = ({ source, destination, onContinue }: TripMapUIProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -26,7 +27,24 @@ const TripMapUI = ({ source = 'New York', destination = 'Paris' }: TripMapUIProp
   const [loading, setLoading] = useState(true);
   
   const getCoordinates = useCallback(async (location: string): Promise<[number, number] | null> => {
+    if (!location || location.trim() === '') return null;
+    
     try {
+      // First try our location data API for better results
+      const locationResponse = await fetch('/api/location-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location })
+      });
+      
+      if (locationResponse.ok) {
+        const locationData = await locationResponse.json();
+        if (locationData.coordinates) {
+          return [locationData.coordinates.lat, locationData.coordinates.lng];
+        }
+      }
+      
+      // Fallback to Nominatim
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`,
         { headers: { 'User-Agent': 'TripPlanner/1.0' } }
@@ -295,6 +313,16 @@ const TripMapUI = ({ source = 'New York', destination = 'Paris' }: TripMapUIProp
           </p>
           <p className="text-xs text-orange-600">Optimal</p>
         </div>
+      </div>
+
+      {/* Continue Button */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={onContinue}
+          className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
+        >
+          Continue to Virtual Tour
+        </button>
       </div>
     </div>
   )
