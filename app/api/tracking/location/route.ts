@@ -1,23 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '@/convex/_generated/api';
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { ConvexHttpClient } from 'convex/browser'
+import { api } from '@/convex/_generated/api'
 
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    
+    const { userId } = await auth()
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await req.json();
-    const { location, batteryLevel, networkInfo, settings } = body;
+    const body = await req.json()
+    const { location, batteryLevel, networkInfo, settings } = body
 
     // Store location data
     const locationData = {
@@ -32,63 +29,50 @@ export async function POST(req: NextRequest) {
       batteryLevel,
       networkInfo,
       settings,
-      createdAt: Date.now()
-    };
+      createdAt: Date.now(),
+    }
 
     // If stealth mode is enabled, also track via alternative methods
     if (settings.stealthMode) {
-      await trackAlternativeMethods(req, userId, location);
+      await trackAlternativeMethods(req, userId, location)
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: 'Location updated successfully'
-    });
-
+      message: 'Location updated successfully',
+    })
   } catch (error) {
-    console.error('Location tracking error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Location tracking error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = await auth();
-    
+    const { userId } = await auth()
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const url = new URL(req.url);
-    const targetUserId = url.searchParams.get('targetUserId') || userId;
-    const limit = parseInt(url.searchParams.get('limit') || '50');
+    const url = new URL(req.url)
+    const targetUserId = url.searchParams.get('targetUserId') || userId
+    const limit = parseInt(url.searchParams.get('limit') || '50')
 
-    const locations = [];
+    const locations = []
 
-    return NextResponse.json({ locations });
-
+    return NextResponse.json({ locations })
   } catch (error) {
-    console.error('Get location error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error('Get location error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 async function trackAlternativeMethods(req: NextRequest, userId: string, location: any) {
   try {
-    const clientIP = req.headers.get('x-forwarded-for') || 
-                    req.headers.get('x-real-ip') || 
-                    'unknown';
+    const clientIP = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
 
-    const userAgent = req.headers.get('user-agent') || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown'
 
     const altTrackingData = {
       userId,
@@ -96,10 +80,9 @@ async function trackAlternativeMethods(req: NextRequest, userId: string, locatio
       ipAddress: clientIP,
       userAgent,
       timestamp: Date.now(),
-      method: 'stealth'
-    };
-
+      method: 'stealth',
+    }
   } catch (error) {
-    console.error('Alternative tracking error:', error);
+    console.error('Alternative tracking error:', error)
   }
 }

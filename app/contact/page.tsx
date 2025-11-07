@@ -11,7 +11,7 @@ const Contact = () => {
     email: '',
     subject: '',
     message: '',
-    category: 'general'
+    category: 'general',
   })
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -19,7 +19,7 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+
     try {
       // Simulate form submission
       await new Promise(resolve => setTimeout(resolve, 2000))
@@ -36,7 +36,7 @@ const Contact = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }))
   }
 
@@ -47,8 +47,8 @@ const Contact = () => {
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Get in Touch</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Have questions about your trip planning? Need help with our services? 
-            We're here to assist you every step of the way.
+            Have questions about your trip planning? Need help with our services? We're here to
+            assist you every step of the way.
           </p>
         </div>
 
@@ -71,7 +71,7 @@ const Contact = () => {
                     <p className="text-gray-600">hello@aitripplanner.com</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3">
                   <Phone className="w-5 h-5 text-primary mt-1" />
                   <div>
@@ -80,26 +80,30 @@ const Contact = () => {
                     <p className="text-sm text-gray-500">Emergency: +237 6XX XXX XXX</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold">Office Location</h3>
                     <p className="text-gray-600">
-                      Douala, Cameroon<br />
-                      Central Africa<br />
+                      Douala, Cameroon
+                      <br />
+                      Central Africa
+                      <br />
                       West Africa Region
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-3">
                   <Clock className="w-5 h-5 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold">Business Hours</h3>
                     <p className="text-gray-600">
-                      Monday - Friday: 8:00 AM - 6:00 PM (WAT)<br />
-                      Saturday: 9:00 AM - 4:00 PM (WAT)<br />
+                      Monday - Friday: 8:00 AM - 6:00 PM (WAT)
+                      <br />
+                      Saturday: 9:00 AM - 4:00 PM (WAT)
+                      <br />
                       Sunday: Emergency Support Only
                     </p>
                     <p className="text-sm text-primary mt-2">24/7 AI Assistant Available</p>
@@ -130,7 +134,7 @@ const Contact = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* FAQ Quick Links */}
             <Card className="mt-6">
               <CardHeader>
@@ -173,17 +177,20 @@ const Contact = () => {
                     ✅ Message sent successfully! We'll get back to you within 24 hours.
                   </div>
                 )}
-                
+
                 {submitStatus === 'error' && (
                   <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
                     ❌ Failed to send message. Please try again or contact us directly.
                   </div>
                 )}
-                
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label
+                        htmlFor="name"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
                         Full Name *
                       </label>
                       <input
@@ -197,9 +204,12 @@ const Contact = () => {
                         placeholder="Your full name"
                       />
                     </div>
-                    
+
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                      >
                         Email Address *
                       </label>
                       <input
@@ -214,9 +224,12 @@ const Contact = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="category"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Support Category
                     </label>
                     <select
@@ -234,9 +247,12 @@ const Contact = () => {
                       <option value="partnership">Business Partnership</option>
                     </select>
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="subject"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Subject *
                     </label>
                     <input
@@ -250,9 +266,12 @@ const Contact = () => {
                       placeholder="What's this about?"
                     />
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="message"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
                       Message *
                     </label>
                     <textarea
@@ -266,12 +285,8 @@ const Contact = () => {
                       placeholder="Tell us how we can help you..."
                     />
                   </div>
-                  
-                  <Button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="w-full md:w-auto"
-                  >
+
+                  <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
                     {isSubmitting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />

@@ -1,7 +1,26 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { MapPin, Phone, Shield, Users, Camera, Wifi, Smartphone, Navigation, AlertTriangle, Battery, Signal, Eye, EyeOff, Share2, Bell, Clock, Route, Heart } from 'lucide-react'
+import {
+  MapPin,
+  Phone,
+  Shield,
+  Users,
+  Camera,
+  Wifi,
+  Smartphone,
+  Navigation,
+  AlertTriangle,
+  Battery,
+  Signal,
+  Eye,
+  EyeOff,
+  Share2,
+  Bell,
+  Clock,
+  Route,
+  Heart,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useUser } from '@clerk/nextjs'
@@ -40,7 +59,7 @@ const TrackingPage = () => {
     trackSim: true,
     trackIP: true,
     stealthMode: false,
-    updateInterval: 30000
+    updateInterval: 30000,
   })
   const [batteryLevel, setBatteryLevel] = useState<number>(100)
   const [networkInfo, setNetworkInfo] = useState<any>({})
@@ -78,12 +97,13 @@ const TrackingPage = () => {
   const getNetworkInfo = () => {
     try {
       // @ts-ignore
-      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+      const connection =
+        navigator.connection || navigator.mozConnection || navigator.webkitConnection
       if (connection) {
         setNetworkInfo({
           type: connection.effectiveType,
           downlink: connection.downlink,
-          rtt: connection.rtt
+          rtt: connection.rtt,
         })
       }
     } catch (error) {
@@ -100,27 +120,27 @@ const TrackingPage = () => {
     const options = {
       enableHighAccuracy: true,
       timeout: 10000,
-      maximumAge: 0
+      maximumAge: 0,
     }
 
     watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
+      position => {
         const locationData: LocationData = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           accuracy: position.coords.accuracy,
           timestamp: Date.now(),
           speed: position.coords.speed || undefined,
-          heading: position.coords.heading || undefined
+          heading: position.coords.heading || undefined,
         }
-        
+
         setCurrentLocation(locationData)
-        
+
         if (settings.stealthMode || settings.shareLocation) {
           sendLocationUpdate(locationData)
         }
       },
-      (error) => {
+      error => {
         console.error('Geolocation error:', error)
         if (settings.trackWifi || settings.trackIP) {
           getLocationByIP()
@@ -140,7 +160,7 @@ const TrackingPage = () => {
           longitude: data.longitude,
           accuracy: 10000,
           timestamp: Date.now(),
-          address: data.city + ', ' + data.country
+          address: data.city + ', ' + data.country,
         }
         setCurrentLocation(locationData)
         sendLocationUpdate(locationData)
@@ -160,8 +180,8 @@ const TrackingPage = () => {
           location,
           batteryLevel,
           networkInfo,
-          settings
-        })
+          settings,
+        }),
       })
     } catch (error) {
       console.error('Failed to send location update:', error)
@@ -172,7 +192,7 @@ const TrackingPage = () => {
     if (!user) return
     setIsTracking(true)
     startLocationTracking()
-    
+
     if (settings.recordVideo) {
       startVideoRecording()
     }
@@ -194,11 +214,11 @@ const TrackingPage = () => {
 
   const startVideoRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' }, 
-        audio: true 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: true,
       })
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream
       }
@@ -225,10 +245,10 @@ const TrackingPage = () => {
           location: currentLocation,
           emergencyContacts,
           batteryLevel,
-          networkInfo
-        })
+          networkInfo,
+        }),
       })
-      
+
       alert('Emergency alert sent to your contacts!')
     } catch (error) {
       console.error('Failed to send emergency alert:', error)
@@ -241,7 +261,7 @@ const TrackingPage = () => {
     const shareData = {
       title: 'My Current Location',
       text: `I'm currently at: ${currentLocation.latitude}, ${currentLocation.longitude}`,
-      url: `https://maps.google.com/?q=${currentLocation.latitude},${currentLocation.longitude}`
+      url: `https://maps.google.com/?q=${currentLocation.latitude},${currentLocation.longitude}`,
     }
 
     try {
@@ -284,11 +304,15 @@ const TrackingPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Battery</p>
-                  <p className={`font-semibold ${batteryLevel < 20 ? 'text-red-600' : 'text-green-600'}`}>
+                  <p
+                    className={`font-semibold ${batteryLevel < 20 ? 'text-red-600' : 'text-green-600'}`}
+                  >
                     {batteryLevel}%
                   </p>
                 </div>
-                <Battery className={`w-8 h-8 ${batteryLevel < 20 ? 'text-red-500' : 'text-green-500'}`} />
+                <Battery
+                  className={`w-8 h-8 ${batteryLevel < 20 ? 'text-red-500' : 'text-green-500'}`}
+                />
               </div>
             </CardContent>
           </Card>
@@ -334,11 +358,21 @@ const TrackingPage = () => {
                   {currentLocation ? (
                     <div className="text-center">
                       <MapPin className="w-12 h-12 mx-auto mb-4 text-green-500" />
-                      <p className="font-semibold">Location: {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}</p>
-                      <p className="text-sm text-gray-600">Accuracy: ±{Math.round(currentLocation.accuracy)}m</p>
-                      <Button 
+                      <p className="font-semibold">
+                        Location: {currentLocation.latitude.toFixed(6)},{' '}
+                        {currentLocation.longitude.toFixed(6)}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Accuracy: ±{Math.round(currentLocation.accuracy)}m
+                      </p>
+                      <Button
                         className="mt-4"
-                        onClick={() => window.open(`https://maps.google.com/?q=${currentLocation.latitude},${currentLocation.longitude}`, '_blank')}
+                        onClick={() =>
+                          window.open(
+                            `https://maps.google.com/?q=${currentLocation.latitude},${currentLocation.longitude}`,
+                            '_blank'
+                          )
+                        }
                       >
                         View on Google Maps
                       </Button>
@@ -366,7 +400,7 @@ const TrackingPage = () => {
                   >
                     {isTracking ? 'Stop Tracking' : 'Start Tracking'}
                   </Button>
-                  
+
                   <Button
                     onClick={triggerEmergency}
                     variant="destructive"
@@ -375,18 +409,16 @@ const TrackingPage = () => {
                     <AlertTriangle className="w-4 h-4 mr-2" />
                     Emergency
                   </Button>
-                  
-                  <Button
-                    onClick={shareLocation}
-                    variant="outline"
-                    disabled={!currentLocation}
-                  >
+
+                  <Button onClick={shareLocation} variant="outline" disabled={!currentLocation}>
                     <Share2 className="w-4 h-4 mr-2" />
                     Share Location
                   </Button>
-                  
+
                   <Button
-                    onClick={() => setSettings(prev => ({ ...prev, recordVideo: !prev.recordVideo }))}
+                    onClick={() =>
+                      setSettings(prev => ({ ...prev, recordVideo: !prev.recordVideo }))
+                    }
                     variant="outline"
                   >
                     <Camera className="w-4 h-4 mr-2" />
@@ -411,23 +443,35 @@ const TrackingPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setSettings(prev => ({ ...prev, shareLocation: !prev.shareLocation }))}
+                    onClick={() =>
+                      setSettings(prev => ({ ...prev, shareLocation: !prev.shareLocation }))
+                    }
                   >
-                    {settings.shareLocation ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    {settings.shareLocation ? (
+                      <Eye className="w-4 h-4" />
+                    ) : (
+                      <EyeOff className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Stealth Mode</span>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setSettings(prev => ({ ...prev, stealthMode: !prev.stealthMode }))}
+                    onClick={() =>
+                      setSettings(prev => ({ ...prev, stealthMode: !prev.stealthMode }))
+                    }
                   >
-                    {settings.stealthMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {settings.stealthMode ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Track WiFi</span>
                   <Button
@@ -435,10 +479,12 @@ const TrackingPage = () => {
                     size="sm"
                     onClick={() => setSettings(prev => ({ ...prev, trackWifi: !prev.trackWifi }))}
                   >
-                    <Wifi className={`w-4 h-4 ${settings.trackWifi ? 'text-green-500' : 'text-gray-400'}`} />
+                    <Wifi
+                      className={`w-4 h-4 ${settings.trackWifi ? 'text-green-500' : 'text-gray-400'}`}
+                    />
                   </Button>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Track SIM</span>
                   <Button
@@ -446,10 +492,12 @@ const TrackingPage = () => {
                     size="sm"
                     onClick={() => setSettings(prev => ({ ...prev, trackSim: !prev.trackSim }))}
                   >
-                    <Smartphone className={`w-4 h-4 ${settings.trackSim ? 'text-green-500' : 'text-gray-400'}`} />
+                    <Smartphone
+                      className={`w-4 h-4 ${settings.trackSim ? 'text-green-500' : 'text-gray-400'}`}
+                    />
                   </Button>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Track IP</span>
                   <Button
@@ -457,7 +505,9 @@ const TrackingPage = () => {
                     size="sm"
                     onClick={() => setSettings(prev => ({ ...prev, trackIP: !prev.trackIP }))}
                   >
-                    <Navigation className={`w-4 h-4 ${settings.trackIP ? 'text-green-500' : 'text-gray-400'}`} />
+                    <Navigation
+                      className={`w-4 h-4 ${settings.trackIP ? 'text-green-500' : 'text-gray-400'}`}
+                    />
                   </Button>
                 </div>
               </CardContent>
@@ -476,12 +526,17 @@ const TrackingPage = () => {
                     <p className="text-sm text-gray-500">No emergency contacts added</p>
                   ) : (
                     emergencyContacts.map((contact, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                      >
                         <span className="text-sm">{contact}</span>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setEmergencyContacts(prev => prev.filter((_, i) => i !== index))}
+                          onClick={() =>
+                            setEmergencyContacts(prev => prev.filter((_, i) => i !== index))
+                          }
                         >
                           ×
                         </Button>
@@ -515,21 +570,26 @@ const TrackingPage = () => {
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div>
-                    <span className="font-medium">Latitude:</span> {currentLocation.latitude.toFixed(6)}
+                    <span className="font-medium">Latitude:</span>{' '}
+                    {currentLocation.latitude.toFixed(6)}
                   </div>
                   <div>
-                    <span className="font-medium">Longitude:</span> {currentLocation.longitude.toFixed(6)}
+                    <span className="font-medium">Longitude:</span>{' '}
+                    {currentLocation.longitude.toFixed(6)}
                   </div>
                   <div>
-                    <span className="font-medium">Accuracy:</span> ±{Math.round(currentLocation.accuracy)}m
+                    <span className="font-medium">Accuracy:</span> ±
+                    {Math.round(currentLocation.accuracy)}m
                   </div>
                   {currentLocation.speed && (
                     <div>
-                      <span className="font-medium">Speed:</span> {Math.round(currentLocation.speed * 3.6)} km/h
+                      <span className="font-medium">Speed:</span>{' '}
+                      {Math.round(currentLocation.speed * 3.6)} km/h
                     </div>
                   )}
                   <div>
-                    <span className="font-medium">Last Update:</span> {new Date(currentLocation.timestamp).toLocaleTimeString()}
+                    <span className="font-medium">Last Update:</span>{' '}
+                    {new Date(currentLocation.timestamp).toLocaleTimeString()}
                   </div>
                 </CardContent>
               </Card>
@@ -537,14 +597,7 @@ const TrackingPage = () => {
           </div>
         </div>
 
-        {settings.recordVideo && (
-          <video
-            ref={videoRef}
-            autoPlay
-            muted
-            className="hidden"
-          />
-        )}
+        {settings.recordVideo && <video ref={videoRef} autoPlay muted className="hidden" />}
       </div>
     </div>
   )

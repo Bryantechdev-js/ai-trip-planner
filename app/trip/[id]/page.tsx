@@ -6,16 +6,16 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  MapPin, 
-  Calendar, 
-  Users, 
-  DollarSign, 
-  Heart, 
-  Clock, 
-  Camera, 
-  Play, 
-  Download, 
+import {
+  MapPin,
+  Calendar,
+  Users,
+  DollarSign,
+  Heart,
+  Clock,
+  Camera,
+  Play,
+  Download,
   Share2,
   ArrowLeft,
   Star,
@@ -25,7 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ZoomIn,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -40,10 +40,12 @@ const TripDetailPage = ({ params }: TripDetailPageProps) => {
   const router = useRouter()
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'gallery' | 'videos' | 'itinerary'>('overview')
-  
-  const trip = useQuery(api.trips.getTripById, { 
-    tripId: params.id as Id<"TripTable"> 
+  const [activeTab, setActiveTab] = useState<'overview' | 'gallery' | 'videos' | 'itinerary'>(
+    'overview'
+  )
+
+  const trip = useQuery(api.trips.getTripById, {
+    tripId: params.id as Id<'TripTable'>,
   })
 
   if (!trip) {
@@ -68,7 +70,7 @@ const TripDetailPage = ({ params }: TripDetailPageProps) => {
       attractions: trip.tripPlan.attractions,
       cuisine: trip.tripPlan.cuisine,
       culture: trip.tripPlan.culture,
-      createdAt: new Date(trip.createdAt).toLocaleDateString()
+      createdAt: new Date(trip.createdAt).toLocaleDateString(),
     }
 
     const content = `
@@ -120,7 +122,7 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
     const shareData = {
       title: `Trip to ${trip.destination}`,
       text: `Check out this amazing ${trip.duration}-day trip to ${trip.destination}!`,
-      url: window.location.href
+      url: window.location.href,
     }
 
     if (navigator.share) {
@@ -138,13 +140,15 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
 
   const nextImage = () => {
     if (trip.galleryImages) {
-      setSelectedImageIndex((prev) => (prev + 1) % trip.galleryImages!.length)
+      setSelectedImageIndex(prev => (prev + 1) % trip.galleryImages!.length)
     }
   }
 
   const prevImage = () => {
     if (trip.galleryImages) {
-      setSelectedImageIndex((prev) => (prev - 1 + trip.galleryImages!.length) % trip.galleryImages!.length)
+      setSelectedImageIndex(
+        prev => (prev - 1 + trip.galleryImages!.length) % trip.galleryImages!.length
+      )
     }
   }
 
@@ -152,21 +156,24 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="relative h-96 overflow-hidden">
-        <img 
-          src={trip.coverImage || `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel,landmark`}
+        <img
+          src={
+            trip.coverImage ||
+            `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel,landmark`
+          }
           alt={`${trip.destination} cover`}
           className="w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel,landmark`;
+          onError={e => {
+            const target = e.target as HTMLImageElement
+            target.src = `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel,landmark`
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        
+
         {/* Back Button */}
         <div className="absolute top-6 left-6">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => router.back()}
             className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30"
           >
@@ -174,7 +181,7 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
             Back
           </Button>
         </div>
-        
+
         {/* Trip Info Overlay */}
         <div className="absolute bottom-6 left-6 right-6">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
@@ -187,16 +194,16 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                   From {trip.sourceLocation} • {trip.duration} days
                 </p>
               </div>
-              
+
               <div className="flex gap-3">
-                <Button 
+                <Button
                   onClick={handleDownloadItinerary}
                   className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download
                 </Button>
-                <Button 
+                <Button
                   onClick={shareTrip}
                   className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30"
                 >
@@ -217,15 +224,13 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
             { id: 'overview', label: 'Overview', icon: MapPin },
             { id: 'gallery', label: 'Gallery', icon: Camera },
             { id: 'videos', label: 'Videos', icon: Play },
-            { id: 'itinerary', label: 'Itinerary', icon: Calendar }
+            { id: 'itinerary', label: 'Itinerary', icon: Calendar },
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id as any)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                activeTab === id
-                  ? 'bg-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                activeTab === id ? 'bg-primary text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -293,7 +298,10 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
                       {trip.interests.map((interest, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
+                        <span
+                          key={idx}
+                          className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                        >
                           {interest}
                         </span>
                       ))}
@@ -314,7 +322,10 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                   <CardContent>
                     <div className="grid gap-3">
                       {trip.tripPlan.attractions.map((attraction, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                        >
                           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white font-bold text-sm">
                             {idx + 1}
                           </div>
@@ -351,7 +362,9 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                     {trip.tripPlan.culture.languages.length > 0 && (
                       <div>
                         <p className="font-medium text-gray-700">Languages</p>
-                        <p className="text-gray-600">{trip.tripPlan.culture.languages.join(', ')}</p>
+                        <p className="text-gray-600">
+                          {trip.tripPlan.culture.languages.join(', ')}
+                        </p>
                       </div>
                     )}
                   </CardContent>
@@ -368,7 +381,11 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                     <Camera className="w-4 h-4 mr-2" />
                     View Gallery
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={() => setActiveTab('videos')}>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setActiveTab('videos')}
+                  >
                     <Play className="w-4 h-4 mr-2" />
                     Watch Videos
                   </Button>
@@ -389,16 +406,16 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                 {/* Main Image Display */}
                 <div className="relative">
                   <div className="aspect-video bg-gray-200 rounded-xl overflow-hidden relative group">
-                    <img 
-                      src={trip.galleryImages[selectedImageIndex]?.url} 
+                    <img
+                      src={trip.galleryImages[selectedImageIndex]?.url}
                       alt={trip.galleryImages[selectedImageIndex]?.title}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel`;
+                      onError={e => {
+                        const target = e.target as HTMLImageElement
+                        target.src = `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel`
                       }}
                     />
-                    
+
                     {/* Navigation Arrows */}
                     {trip.galleryImages.length > 1 && (
                       <>
@@ -416,16 +433,16 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                         </button>
                       </>
                     )}
-                    
+
                     {/* Zoom Button */}
-                    <button 
+                    <button
                       onClick={() => setIsLightboxOpen(true)}
                       className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
                     >
                       <ZoomIn className="w-5 h-5" />
                     </button>
                   </div>
-                  
+
                   {/* Image Info */}
                   <div className="mt-4 text-center">
                     <h3 className="text-lg font-semibold text-gray-800">
@@ -449,13 +466,13 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                           : 'hover:opacity-80'
                       }`}
                     >
-                      <img 
-                        src={image.thumbnail} 
+                      <img
+                        src={image.thumbnail}
                         alt={image.title}
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = `https://source.unsplash.com/400x400/?${encodeURIComponent(trip.destination)},${image.category}`;
+                        onError={e => {
+                          const target = e.target as HTMLImageElement
+                          target.src = `https://source.unsplash.com/400x400/?${encodeURIComponent(trip.destination)},${image.category}`
                         }}
                       />
                     </div>
@@ -465,7 +482,9 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
             ) : (
               <div className="text-center py-12">
                 <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">No gallery images available</h3>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                  No gallery images available
+                </h3>
                 <p className="text-gray-500">Images will be added when available</p>
               </div>
             )}
@@ -479,13 +498,13 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                 {trip.videos.map((video, index) => (
                   <Card key={index} className="overflow-hidden">
                     <div className="relative aspect-video bg-gray-200">
-                      <img 
+                      <img
                         src={video.thumbnail}
                         alt={video.title}
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = `https://source.unsplash.com/640x360/?${encodeURIComponent(trip.destination)},${video.type}`;
+                        onError={e => {
+                          const target = e.target as HTMLImageElement
+                          target.src = `https://source.unsplash.com/640x360/?${encodeURIComponent(trip.destination)},${video.type}`
                         }}
                       />
                       <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -498,7 +517,7 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                       <h3 className="font-semibold text-gray-800 mb-2">{video.title}</h3>
                       <div className="flex items-center justify-between text-sm text-gray-600">
                         <span>{video.duration}</span>
-                        <a 
+                        <a
                           href={video.url}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -536,14 +555,19 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
                       </div>
                       <div className="flex-1">
                         <h4 className="font-semibold text-gray-800 mb-2">
-                          Day {index + 1}: {index === 0 ? `Arrival in ${trip.destination}` : 
-                                          index === trip.duration - 1 ? 'Departure' : 
-                                          `Explore ${trip.destination}`}
+                          Day {index + 1}:{' '}
+                          {index === 0
+                            ? `Arrival in ${trip.destination}`
+                            : index === trip.duration - 1
+                              ? 'Departure'
+                              : `Explore ${trip.destination}`}
                         </h4>
                         <p className="text-gray-600 text-sm">
-                          {index === 0 ? 'Arrive and settle in, explore nearby areas' :
-                           index === trip.duration - 1 ? 'Final activities and departure preparations' :
-                           'Full day of sightseeing and cultural experiences'}
+                          {index === 0
+                            ? 'Arrive and settle in, explore nearby areas'
+                            : index === trip.duration - 1
+                              ? 'Final activities and departure preparations'
+                              : 'Full day of sightseeing and cultural experiences'}
                         </p>
                       </div>
                     </div>
@@ -565,13 +589,13 @@ ${itineraryData.culture.tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n')}
             >
               ✕
             </button>
-            <img 
-              src={trip.galleryImages[selectedImageIndex]?.url} 
+            <img
+              src={trip.galleryImages[selectedImageIndex]?.url}
               alt={trip.galleryImages[selectedImageIndex]?.title}
               className="w-full h-auto max-h-[80vh] object-contain rounded-lg shadow-2xl"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel`;
+              onError={e => {
+                const target = e.target as HTMLImageElement
+                target.src = `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel`
               }}
             />
           </div>

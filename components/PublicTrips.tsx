@@ -1,16 +1,17 @@
-"use client";
+'use client'
 
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, Calendar, Users, DollarSign, Heart, Clock } from "lucide-react";
-import { useState } from "react";
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { MapPin, Calendar, Users, DollarSign, Heart, Clock } from 'lucide-react'
+import { useState } from 'react'
 
 export default function PublicTrips() {
-  const [selectedDestination, setSelectedDestination] = useState<string>("");
-  const publicTrips = useQuery(api.trips.getPublicTrips, 
+  const [selectedDestination, setSelectedDestination] = useState<string>('')
+  const publicTrips = useQuery(
+    api.trips.getPublicTrips,
     selectedDestination ? { destination: selectedDestination } : {}
-  );
+  )
 
   if (!publicTrips) {
     return (
@@ -18,38 +19,40 @@ export default function PublicTrips() {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         <span className="ml-2 text-gray-600">Loading inspiring trips...</span>
       </div>
-    );
+    )
   }
 
-  const destinations = [...new Set(publicTrips.map(trip => trip.destination))];
+  const destinations = [...new Set(publicTrips.map(trip => trip.destination))]
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Discover Amazing Trips</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+          Discover Amazing Trips
+        </h2>
         <p className="text-gray-600 mb-4 px-4">Get inspired by trips planned by other travelers</p>
-        
+
         {/* Destination Filter */}
         {destinations.length > 0 && (
           <div className="flex flex-wrap justify-center gap-2 mb-6">
             <button
-              onClick={() => setSelectedDestination("")}
+              onClick={() => setSelectedDestination('')}
               className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                selectedDestination === "" 
-                  ? "bg-primary text-white" 
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                selectedDestination === ''
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               All Destinations
             </button>
-            {destinations.slice(0, 6).map((destination) => (
+            {destinations.slice(0, 6).map(destination => (
               <button
                 key={destination}
                 onClick={() => setSelectedDestination(destination)}
                 className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                  selectedDestination === destination 
-                    ? "bg-primary text-white" 
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  selectedDestination === destination
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 {destination}
@@ -67,19 +70,25 @@ export default function PublicTrips() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {publicTrips.map((trip) => (
-            <Card key={trip._id} className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md overflow-hidden">
+          {publicTrips.map(trip => (
+            <Card
+              key={trip._id}
+              className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-md overflow-hidden"
+            >
               {/* Trip Cover Image */}
               <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={trip.coverImage || `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel,landmark,city`}
+                <img
+                  src={
+                    trip.coverImage ||
+                    `https://source.unsplash.com/1200x800/?${encodeURIComponent(trip.destination)},travel,landmark,city`
+                  }
                   alt={`${trip.destination} cover`}
                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
+                  onError={e => {
+                    const target = e.target as HTMLImageElement
                     // Try different fallback images
                     if (!target.src.includes('picsum')) {
-                      target.src = `https://picsum.photos/1200/800?random=${Math.floor(Math.random() * 1000)}`;
+                      target.src = `https://picsum.photos/1200/800?random=${Math.floor(Math.random() * 1000)}`
                     }
                   }}
                   loading="lazy"
@@ -90,9 +99,7 @@ export default function PublicTrips() {
                     <MapPin className="w-5 h-5 text-white" />
                     {trip.destination}
                   </CardTitle>
-                  <p className="text-sm text-white/80 mt-1">
-                    From {trip.sourceLocation}
-                  </p>
+                  <p className="text-sm text-white/80 mt-1">From {trip.sourceLocation}</p>
                 </div>
                 <div className="absolute top-3 right-3">
                   <div className="text-xs text-white/80 bg-black/30 backdrop-blur-sm rounded-full px-2 py-1">
@@ -126,7 +133,10 @@ export default function PublicTrips() {
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {trip.interests.slice(0, 3).map((interest, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+                        >
                           {interest}
                         </span>
                       ))}
@@ -174,5 +184,5 @@ export default function PublicTrips() {
         </div>
       )}
     </div>
-  );
+  )
 }

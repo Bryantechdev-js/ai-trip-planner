@@ -4,14 +4,14 @@ import React, { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  DollarSign, 
-  Plane, 
-  Hotel, 
-  Car, 
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  DollarSign,
+  Plane,
+  Hotel,
+  Car,
   Activity,
   CheckCircle,
   XCircle,
@@ -21,7 +21,7 @@ import {
   Search,
   Download,
   Bell,
-  Star
+  Star,
 } from 'lucide-react'
 
 interface Booking {
@@ -51,7 +51,9 @@ const BookingsPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'hotel' | 'flight' | 'activity' | 'transport'>('all')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>(
+    'all'
+  )
   const [searchTerm, setSearchTerm] = useState('')
   const [showBookingForm, setShowBookingForm] = useState(false)
 
@@ -77,40 +79,54 @@ const BookingsPage = () => {
 
   const getBookingIcon = (type: string) => {
     switch (type) {
-      case 'hotel': return <Hotel className="w-5 h-5" />
-      case 'flight': return <Plane className="w-5 h-5" />
-      case 'activity': return <Activity className="w-5 h-5" />
-      case 'transport': return <Car className="w-5 h-5" />
-      default: return <MapPin className="w-5 h-5" />
+      case 'hotel':
+        return <Hotel className="w-5 h-5" />
+      case 'flight':
+        return <Plane className="w-5 h-5" />
+      case 'activity':
+        return <Activity className="w-5 h-5" />
+      case 'transport':
+        return <Car className="w-5 h-5" />
+      default:
+        return <MapPin className="w-5 h-5" />
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'confirmed': return <CheckCircle className="w-4 h-4 text-green-500" />
-      case 'cancelled': return <XCircle className="w-4 h-4 text-red-500" />
-      case 'pending': return <AlertCircle className="w-4 h-4 text-yellow-500" />
-      default: return <Clock className="w-4 h-4 text-gray-500" />
+      case 'confirmed':
+        return <CheckCircle className="w-4 h-4 text-green-500" />
+      case 'cancelled':
+        return <XCircle className="w-4 h-4 text-red-500" />
+      case 'pending':
+        return <AlertCircle className="w-4 h-4 text-yellow-500" />
+      default:
+        return <Clock className="w-4 h-4 text-gray-500" />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800'
-      case 'cancelled': return 'bg-red-100 text-red-800'
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'confirmed':
+        return 'bg-green-100 text-green-800'
+      case 'cancelled':
+        return 'bg-red-100 text-red-800'
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
   const filteredBookings = bookings.filter(booking => {
     const matchesType = filter === 'all' || booking.type === filter
     const matchesStatus = statusFilter === 'all' || booking.status === statusFilter
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch =
+      searchTerm === '' ||
       booking.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.details.location?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     return matchesType && matchesStatus && matchesSearch
   })
 
@@ -119,9 +135,9 @@ const BookingsPage = () => {
       const response = await fetch('/api/booking/auto-book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tripId })
+        body: JSON.stringify({ tripId }),
       })
-      
+
       if (response.ok) {
         const result = await response.json()
         alert(`Auto-booking initiated! ${result.bookingsCreated} bookings created.`)
@@ -176,7 +192,7 @@ const BookingsPage = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
@@ -192,7 +208,7 @@ const BookingsPage = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
@@ -208,7 +224,7 @@ const BookingsPage = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
@@ -236,14 +252,14 @@ const BookingsPage = () => {
                   type="text"
                   placeholder="Search bookings..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent w-full sm:w-64"
                 />
               </div>
-              
+
               <select
                 value={filter}
-                onChange={(e) => setFilter(e.target.value as any)}
+                onChange={e => setFilter(e.target.value as any)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="all">All Types</option>
@@ -252,10 +268,10 @@ const BookingsPage = () => {
                 <option value="activity">Activities</option>
                 <option value="transport">Transport</option>
               </select>
-              
+
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
+                onChange={e => setStatusFilter(e.target.value as any)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="all">All Status</option>
@@ -264,7 +280,7 @@ const BookingsPage = () => {
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
-            
+
             <div className="flex gap-2">
               <Button
                 onClick={() => setShowBookingForm(true)}
@@ -284,7 +300,7 @@ const BookingsPage = () => {
         {/* Bookings Grid */}
         {filteredBookings.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBookings.map((booking) => (
+            {filteredBookings.map(booking => (
               <Card key={booking._id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -301,17 +317,19 @@ const BookingsPage = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(booking.status)}
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}
+                      >
                         {booking.status}
                       </span>
                     </div>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent>
                   <div className="space-y-3">
                     <p className="text-sm text-gray-700">{booking.description}</p>
-                    
+
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-blue-500" />
@@ -319,7 +337,9 @@ const BookingsPage = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <DollarSign className="w-4 h-4 text-green-500" />
-                        <span>{booking.price.toLocaleString()} {booking.currency}</span>
+                        <span>
+                          {booking.price.toLocaleString()} {booking.currency}
+                        </span>
                       </div>
                       {booking.details.location && (
                         <div className="flex items-center gap-2 col-span-2">
@@ -334,18 +354,20 @@ const BookingsPage = () => {
                         </div>
                       )}
                     </div>
-                    
+
                     {booking.confirmationCode && (
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <p className="text-xs font-medium text-gray-700 mb-1">Confirmation Code</p>
-                        <p className="text-sm font-mono text-gray-900">{booking.confirmationCode}</p>
+                        <p className="text-sm font-mono text-gray-900">
+                          {booking.confirmationCode}
+                        </p>
                       </div>
                     )}
-                    
+
                     <div className="text-xs text-gray-500 pt-2 border-t">
                       Booked: {new Date(booking.bookingDate).toLocaleDateString()}
                     </div>
-                    
+
                     <div className="flex gap-2 pt-3">
                       <Button variant="outline" size="sm" className="flex-1">
                         View Details
@@ -367,16 +389,17 @@ const BookingsPage = () => {
               <Calendar className="w-12 h-12 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchTerm || filter !== 'all' || statusFilter !== 'all' ? 'No bookings found' : 'No bookings yet'}
+              {searchTerm || filter !== 'all' || statusFilter !== 'all'
+                ? 'No bookings found'
+                : 'No bookings yet'}
             </h3>
             <p className="text-gray-600 mb-6">
               {searchTerm || filter !== 'all' || statusFilter !== 'all'
                 ? 'Try adjusting your search or filters'
-                : 'Start booking your travel services!'
-              }
+                : 'Start booking your travel services!'}
             </p>
             {!searchTerm && filter === 'all' && statusFilter === 'all' && (
-              <Button 
+              <Button
                 onClick={() => setShowBookingForm(true)}
                 className="bg-primary hover:bg-primary/90"
               >
@@ -391,8 +414,8 @@ const BookingsPage = () => {
         <div className="mt-12 bg-gradient-to-r from-primary/10 to-blue-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="h-auto p-4 flex flex-col items-center gap-2"
               onClick={() => handleAutoBook('sample-trip-id')}
             >
@@ -400,13 +423,13 @@ const BookingsPage = () => {
               <span className="font-medium">Auto-Book Trip</span>
               <span className="text-xs text-gray-600">Let AI book everything for you</span>
             </Button>
-            
+
             <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
               <Bell className="w-6 h-6 text-blue-500" />
               <span className="font-medium">Set Reminders</span>
               <span className="text-xs text-gray-600">Get notified about your bookings</span>
             </Button>
-            
+
             <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
               <Download className="w-6 h-6 text-green-500" />
               <span className="font-medium">Export Itinerary</span>

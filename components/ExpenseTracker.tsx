@@ -3,7 +3,16 @@
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, DollarSign, TrendingUp, TrendingDown, PieChart, Receipt, Edit, Trash2 } from 'lucide-react'
+import {
+  Plus,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  PieChart,
+  Receipt,
+  Edit,
+  Trash2,
+} from 'lucide-react'
 
 interface Expense {
   id: string
@@ -27,7 +36,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
     category: 'Transportation',
     amount: '',
     description: '',
-    currency: 'USD'
+    currency: 'USD',
   })
   const [loading, setLoading] = useState(true)
 
@@ -43,7 +52,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
       const response = await fetch('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'get', tripId })
+        body: JSON.stringify({ action: 'get', tripId }),
       })
       const data = await response.json()
       setExpenses(data.expenses || [])
@@ -59,7 +68,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
       const response = await fetch('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'getBudgetAnalysis', tripId, budget })
+        body: JSON.stringify({ action: 'getBudgetAnalysis', tripId, budget }),
       })
       const data = await response.json()
       setBudgetAnalysis(data)
@@ -80,10 +89,10 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
           tripId,
           ...newExpense,
           amount: parseFloat(newExpense.amount),
-          date: new Date().toISOString()
-        })
+          date: new Date().toISOString(),
+        }),
       })
-      
+
       if (response.ok) {
         fetchExpenses()
         fetchBudgetAnalysis()
@@ -100,9 +109,9 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
       const response = await fetch('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', expenseId })
+        body: JSON.stringify({ action: 'delete', expenseId }),
       })
-      
+
       if (response.ok) {
         fetchExpenses()
         fetchBudgetAnalysis()
@@ -146,13 +155,15 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
               <div className="text-sm text-gray-600">Spent</div>
             </div>
             <div className="text-center">
-              <div className={`text-2xl font-bold ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div
+                className={`text-2xl font-bold ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}
+              >
                 ${remaining}
               </div>
               <div className="text-sm text-gray-600">Remaining</div>
             </div>
           </div>
-          
+
           {/* Progress Bar */}
           <div className="mt-4">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
@@ -160,10 +171,13 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
               <span>{spentPercentage.toFixed(1)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
+              <div
                 className={`h-3 rounded-full transition-all duration-300 ${
-                  spentPercentage > 90 ? 'bg-red-500' : 
-                  spentPercentage > 70 ? 'bg-yellow-500' : 'bg-green-500'
+                  spentPercentage > 90
+                    ? 'bg-red-500'
+                    : spentPercentage > 70
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
                 }`}
                 style={{ width: `${Math.min(spentPercentage, 100)}%` }}
               ></div>
@@ -184,14 +198,19 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
           <CardContent>
             <div className="space-y-3">
               {Object.entries(budgetAnalysis.categories).map(([category, data]: [string, any]) => (
-                <div key={category} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div
+                  key={category}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-medium">{category}</span>
-                      <span className="text-sm text-gray-600">${data.spent} / ${data.budget}</span>
+                      <span className="text-sm text-gray-600">
+                        ${data.spent} / ${data.budget}
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className="h-2 bg-blue-500 rounded-full transition-all duration-300"
                         style={{ width: `${Math.min(data.percentage, 100)}%` }}
                       ></div>
@@ -212,7 +231,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
               <Receipt className="w-5 h-5" />
               Expenses
             </CardTitle>
-            <Button 
+            <Button
               onClick={() => setShowAddForm(!showAddForm)}
               size="sm"
               className="bg-primary hover:bg-primary/90"
@@ -230,11 +249,13 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <select
                     value={newExpense.category}
-                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                    onChange={e => setNewExpense({ ...newExpense, category: e.target.value })}
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   >
                     {categories.map(category => (
-                      <option key={category} value={category}>{category}</option>
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -243,7 +264,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
                   <div className="flex">
                     <select
                       value={newExpense.currency}
-                      onChange={(e) => setNewExpense({ ...newExpense, currency: e.target.value })}
+                      onChange={e => setNewExpense({ ...newExpense, currency: e.target.value })}
                       className="p-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     >
                       <option value="USD">USD</option>
@@ -254,7 +275,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
                     <input
                       type="number"
                       value={newExpense.amount}
-                      onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                      onChange={e => setNewExpense({ ...newExpense, amount: e.target.value })}
                       placeholder="0.00"
                       className="flex-1 p-2 border border-l-0 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
@@ -266,7 +287,7 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
                 <input
                   type="text"
                   value={newExpense.description}
-                  onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
+                  onChange={e => setNewExpense({ ...newExpense, description: e.target.value })}
                   placeholder="What did you spend on?"
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
@@ -291,8 +312,11 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
                 <p className="text-sm">Add your first expense to start tracking</p>
               </div>
             ) : (
-              expenses.map((expense) => (
-                <div key={expense.id} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+              expenses.map(expense => (
+                <div
+                  key={expense.id}
+                  className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                >
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
@@ -300,13 +324,17 @@ const ExpenseTracker: React.FC<ExpenseTrackerProps> = ({ tripId = 'default', bud
                       </div>
                       <div>
                         <div className="font-medium">{expense.description}</div>
-                        <div className="text-sm text-gray-600">{expense.category} • {new Date(expense.date).toLocaleDateString()}</div>
+                        <div className="text-sm text-gray-600">
+                          {expense.category} • {new Date(expense.date).toLocaleDateString()}
+                        </div>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="font-semibold">{expense.currency} {expense.amount}</div>
+                      <div className="font-semibold">
+                        {expense.currency} {expense.amount}
+                      </div>
                     </div>
                     <Button
                       onClick={() => deleteExpense(expense.id)}

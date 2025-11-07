@@ -20,22 +20,15 @@ export async function GET(req: NextRequest) {
       // TODO: Update user subscription in database
       // For now, we'll just redirect with success
       console.log(`Payment successful for user ${userId}, plan ${planId}`)
-      
-      return NextResponse.redirect(
-        new URL(`/pricing?success=true&plan=${planId}`, req.url)
-      )
+
+      return NextResponse.redirect(new URL(`/pricing?success=true&plan=${planId}`, req.url))
     } else {
       console.log(`Payment failed for user ${userId}, order ${orderId}`)
-      return NextResponse.redirect(
-        new URL('/pricing?error=payment_failed', req.url)
-      )
+      return NextResponse.redirect(new URL('/pricing?error=payment_failed', req.url))
     }
-
   } catch (error) {
     console.error('Payment callback error:', error)
-    return NextResponse.redirect(
-      new URL('/pricing?error=callback_error', req.url)
-    )
+    return NextResponse.redirect(new URL('/pricing?error=callback_error', req.url))
   }
 }
 
@@ -50,13 +43,12 @@ export async function POST(req: NextRequest) {
     if (status === 'completed' || status === 'success') {
       // TODO: Update user subscription in database
       console.log(`Payment webhook: successful payment for order ${order_id}`)
-      
+
       return NextResponse.json({ success: true, message: 'Payment processed' })
     } else {
       console.log(`Payment webhook: failed payment for order ${order_id}`)
       return NextResponse.json({ success: false, message: 'Payment failed' })
     }
-
   } catch (error) {
     console.error('Payment webhook error:', error)
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 })

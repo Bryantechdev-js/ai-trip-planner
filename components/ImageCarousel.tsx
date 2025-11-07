@@ -9,32 +9,32 @@ const ImageCarousel = () => {
 
   const images = [
     {
-      src: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=500&fit=crop",
-      alt: "Mountain Lake"
+      src: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&h=500&fit=crop',
+      alt: 'Mountain Lake',
     },
     {
-      src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=500&fit=crop",
-      alt: "Ocean View"
+      src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=500&fit=crop',
+      alt: 'Ocean View',
     },
     {
-      src: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=500&fit=crop",
-      alt: "Forest Path"
+      src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=500&fit=crop',
+      alt: 'Forest Path',
     },
     {
-      src: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=500&fit=crop",
-      alt: "Beach Paradise"
+      src: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&h=500&fit=crop',
+      alt: 'Beach Paradise',
     },
     {
-      src: "https://images.unsplash.com/photo-1464822759844-d150baec93d5?w=800&h=500&fit=crop",
-      alt: "Desert Landscape"
-    }
+      src: 'https://images.unsplash.com/photo-1464822759844-d150baec93d5?w=800&h=500&fit=crop',
+      alt: 'Desert Landscape',
+    },
   ]
 
   useEffect(() => {
     if (!isAutoPlaying) return
-    
+
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length)
+      setCurrentIndex(prev => (prev + 1) % images.length)
     }, 4000)
 
     return () => clearInterval(interval)
@@ -47,13 +47,13 @@ const ImageCarousel = () => {
   }
 
   const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
+    setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
     setIsAutoPlaying(false)
     setTimeout(() => setIsAutoPlaying(true), 5000)
   }
 
   const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length)
+    setCurrentIndex(prev => (prev + 1) % images.length)
     setIsAutoPlaying(false)
     setTimeout(() => setIsAutoPlaying(true), 5000)
   }
@@ -69,21 +69,17 @@ const ImageCarousel = () => {
               index === currentIndex
                 ? 'opacity-100 scale-100'
                 : index === (currentIndex - 1 + images.length) % images.length
-                ? 'opacity-0 scale-110 -translate-x-full'
-                : index === (currentIndex + 1) % images.length
-                ? 'opacity-0 scale-110 translate-x-full'
-                : 'opacity-0 scale-95'
+                  ? 'opacity-0 scale-110 -translate-x-full'
+                  : index === (currentIndex + 1) % images.length
+                    ? 'opacity-0 scale-110 translate-x-full'
+                    : 'opacity-0 scale-95'
             }`}
           >
-            <img
-              src={image.src}
-              alt={image.alt}
-              className="w-full h-full object-cover"
-            />
+            <img src={image.src} alt={image.alt} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           </div>
         ))}
-        
+
         {/* Navigation Arrows */}
         <button
           onClick={goToPrevious}
@@ -91,7 +87,7 @@ const ImageCarousel = () => {
         >
           <ChevronLeft className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
         </button>
-        
+
         <button
           onClick={goToNext}
           className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-white/30 transition-all duration-300 group"
@@ -107,9 +103,7 @@ const ImageCarousel = () => {
             key={index}
             onClick={() => goToSlide(index)}
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex
-                ? 'bg-white w-8'
-                : 'bg-white/50 hover:bg-white/70'
+              index === currentIndex ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/70'
             }`}
           />
         ))}
@@ -122,16 +116,10 @@ const ImageCarousel = () => {
             key={index}
             onClick={() => goToSlide(index)}
             className={`w-16 h-10 rounded-lg overflow-hidden transition-all duration-300 ${
-              index === currentIndex
-                ? 'ring-2 ring-white scale-110'
-                : 'opacity-60 hover:opacity-80'
+              index === currentIndex ? 'ring-2 ring-white scale-110' : 'opacity-60 hover:opacity-80'
             }`}
           >
-            <img
-              src={image.src}
-              alt={image.alt}
-              className="w-full h-full object-cover"
-            />
+            <img src={image.src} alt={image.alt} className="w-full h-full object-cover" />
           </button>
         ))}
       </div>
