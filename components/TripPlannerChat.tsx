@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Bot, User, Volume2, VolumeX } from 'lucide-react'
+import { Send, Bot, User, Volume2, VolumeX, Mic, MicOff, Languages, Loader2 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 import BudgetingUI from './newTripCompunents/BudgetingUI'
@@ -33,7 +33,24 @@ const TripPlannerChat = () => {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [currentLanguage, setCurrentLanguage] = useState('en')
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const languages = [
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'zh', name: '中文', flag: '🇨🇳' },
+    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+    { code: 'pt', name: 'Português', flag: '🇧🇷' },
+    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+    { code: 'ja', name: '日本語', flag: '🇯🇵' },
+    { code: 'ko', name: '한국어', flag: '🇰🇷' },
+  ]
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -43,13 +60,62 @@ const TripPlannerChat = () => {
     scrollToBottom()
   }, [messages])
 
-  const speakText = (text: string) => {
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition
+      const recognitionInstance = new SpeechRecognition()
+      
+      recognitionInstance.continuous = false
+      recognitionInstance.interimResults = false
+      recognitionInstance.lang = currentLanguage === 'zh' ? 'zh-CN' : currentLanguage
+      
+      recognitionInstance.onstart = () => setIsListening(true)
+      recognitionInstance.onend = () => setIsListening(false)
+      
+      recognitionInstance.onresult = (event) => {
+        const transcript = event.results[0][0].transcript
+        setInput(prev => prev + transcript)
+      }
+      
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error)
+        setIsListening(false)
+      }
+      
+      setRecognition(recognitionInstance)
+    }
+  }, [currentLanguage])
+
+  const speakText = async (text: string) => {
     if ('speechSynthesis' in window) {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel()
 
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'en-US'
+      let textToSpeak = text
+      
+      // Translate text if not in English
+      if (currentLanguage !== 'en') {
+        try {
+          setIsTranslating(true)
+          const response = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, targetLanguage: currentLanguage })
+          })
+          const data = await response.json()
+          if (data.translatedText) {
+            textToSpeak = data.translatedText
+          }
+        } catch (error) {
+          console.error('Translation error:', error)
+        } finally {
+          setIsTranslating(false)
+        }
+      }
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak)
+      utterance.lang = currentLanguage === 'zh' ? 'zh-CN' : currentLanguage
       utterance.rate = 0.9
       utterance.pitch = 1
       utterance.volume = 0.8
@@ -69,8 +135,34 @@ const TripPlannerChat = () => {
     }
   }
 
+  const translateMessage = async (text: string, targetLang: string) => {
+    if (targetLang === 'en') return text
+    
+    try {
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, targetLanguage: targetLang })
+      })
+      const data = await response.json()
+      return data.translatedText || text
+    } catch (error) {
+      console.error('Translation error:', error)
+      return text
+    }
+  }
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return
+
+    let messageContent = input
+    
+    // Translate user message to English if needed
+    if (currentLanguage !== 'en') {
+      setIsTranslating(true)
+      messageContent = await translateMessage(input, 'en')
+      setIsTranslating(false)
+    }
 
     const userMessage: Message = { role: 'user', content: input }
     setMessages(prev => [...prev, userMessage])
@@ -82,25 +174,35 @@ const TripPlannerChat = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map(msg => ({
+          messages: [...messages, { role: 'user', content: messageContent }].map(msg => ({
             role: msg.role,
             content: msg.content,
           })),
+          language: currentLanguage,
         }),
       })
 
       const data = await response.json()
 
       if (data.resp && data.ui !== undefined) {
+        let responseContent = data.resp
+        
+        // Translate AI response if needed
+        if (currentLanguage !== 'en') {
+          setIsTranslating(true)
+          responseContent = await translateMessage(data.resp, currentLanguage)
+          setIsTranslating(false)
+        }
+        
         const newMessage = {
           role: 'assistant' as const,
-          content: data.resp,
+          content: responseContent,
           ui: data.ui,
         }
         setMessages(prev => [...prev, newMessage])
 
         // Speak the AI response
-        speakText(data.resp)
+        speakText(responseContent)
       }
     } catch (error) {
       console.error('Error:', error)
@@ -123,6 +225,18 @@ const TripPlannerChat = () => {
     }
   }
 
+  const startListening = () => {
+    if (recognition && !isListening) {
+      recognition.start()
+    }
+  }
+
+  const stopListening = () => {
+    if (recognition && isListening) {
+      recognition.stop()
+    }
+  }
+
   const handleUISelection = async (selection: string, type: string) => {
     const selectionMessage: Message = {
       role: 'user',
@@ -141,21 +255,31 @@ const TripPlannerChat = () => {
             role: msg.role,
             content: msg.content,
           })),
+          language: currentLanguage,
         }),
       })
 
       const data = await response.json()
 
       if (data.resp && data.ui !== undefined) {
+        let responseContent = data.resp
+        
+        // Translate AI response if needed
+        if (currentLanguage !== 'en') {
+          setIsTranslating(true)
+          responseContent = await translateMessage(data.resp, currentLanguage)
+          setIsTranslating(false)
+        }
+        
         const newMessage = {
           role: 'assistant' as const,
-          content: data.resp,
+          content: responseContent,
           ui: data.ui,
         }
         setMessages(prev => [...prev, newMessage])
 
         // Speak the AI response
-        speakText(data.resp)
+        speakText(responseContent)
       }
     } catch (error) {
       console.error('Error:', error)
@@ -211,13 +335,31 @@ const TripPlannerChat = () => {
     <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden animate-fadeIn">
       {/* Chat Header */}
       <div className="bg-primary text-white p-4 sm:p-6">
-        <div className="flex items-center gap-3">
-          <Bot className="w-8 h-8" />
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold">AI Trip Planner</h2>
-            <p className="text-primary-foreground/80 text-sm">
-              Let's plan your perfect trip together
-            </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Bot className="w-8 h-8" />
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold">AI Trip Planner</h2>
+              <p className="text-primary-foreground/80 text-sm">
+                Let's plan your perfect trip together
+              </p>
+            </div>
+          </div>
+          
+          {/* Language Selector */}
+          <div className="flex items-center gap-2">
+            <Languages className="w-5 h-5" />
+            <select
+              value={currentLanguage}
+              onChange={(e) => setCurrentLanguage(e.target.value)}
+              className="bg-white/20 text-white border border-white/30 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+            >
+              {languages.map((lang) => (
+                <option key={lang.code} value={lang.code} className="text-gray-900">
+                  {lang.flag} {lang.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
@@ -248,10 +390,15 @@ const TripPlannerChat = () => {
                   {message.role === 'assistant' && (
                     <button
                       onClick={() => speakText(message.content)}
-                      className="p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0 mt-1"
+                      disabled={isSpeaking || isTranslating}
+                      className="p-1 hover:bg-gray-200 rounded transition-colors flex-shrink-0 mt-1 disabled:opacity-50"
                       title="Read aloud"
                     >
-                      <Volume2 className="w-3 h-3 text-gray-600" />
+                      {isSpeaking ? (
+                        <VolumeX className="w-3 h-3 text-gray-600" />
+                      ) : (
+                        <Volume2 className="w-3 h-3 text-gray-600" />
+                      )}
                     </button>
                   )}
                 </div>
@@ -300,39 +447,87 @@ const TripPlannerChat = () => {
 
       {/* Input Area */}
       <div className="border-t p-4 sm:p-6 bg-gray-50">
-        {/* Speech Control */}
-        {isSpeaking && (
-          <div className="mb-4 p-3 bg-primary/10 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Volume2 className="w-4 h-4 text-primary animate-pulse" />
-              <span className="text-sm text-primary font-medium">AI is speaking...</span>
-            </div>
-            <button
-              onClick={stopSpeaking}
-              className="p-1 hover:bg-primary/20 rounded transition-colors"
-              title="Stop speaking"
-            >
-              <VolumeX className="w-4 h-4 text-primary" />
-            </button>
+        {/* Status Indicators */}
+        {(isSpeaking || isListening || isTranslating) && (
+          <div className="mb-4 space-y-2">
+            {isSpeaking && (
+              <div className="p-3 bg-primary/10 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Volume2 className="w-4 h-4 text-primary animate-pulse" />
+                  <span className="text-sm text-primary font-medium">AI is speaking...</span>
+                </div>
+                <button
+                  onClick={stopSpeaking}
+                  className="p-1 hover:bg-primary/20 rounded transition-colors"
+                  title="Stop speaking"
+                >
+                  <VolumeX className="w-4 h-4 text-primary" />
+                </button>
+              </div>
+            )}
+            
+            {isListening && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Mic className="w-4 h-4 text-green-600 animate-pulse" />
+                  <span className="text-sm text-green-700 font-medium">Listening... Speak now</span>
+                </div>
+                <button
+                  onClick={stopListening}
+                  className="p-1 hover:bg-green-200 rounded transition-colors"
+                  title="Stop listening"
+                >
+                  <MicOff className="w-4 h-4 text-green-600" />
+                </button>
+              </div>
+            )}
+            
+            {isTranslating && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                <span className="text-sm text-blue-700 font-medium">Translating...</span>
+              </div>
+            )}
           </div>
         )}
 
         <div className="flex gap-2 sm:gap-3">
-          <Textarea
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message here..."
-            className="flex-1 min-h-[44px] max-h-32 resize-none border-gray-200 focus:border-primary focus:ring-primary text-sm sm:text-base"
-            disabled={isLoading}
-          />
+          <div className="flex-1 relative">
+            <Textarea
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={`Type your message here... (${languages.find(l => l.code === currentLanguage)?.name})`}
+              className="flex-1 min-h-[44px] max-h-32 resize-none border-gray-200 focus:border-primary focus:ring-primary text-sm sm:text-base pr-12"
+              disabled={isLoading || isListening}
+            />
+            
+            {/* Voice Input Button */}
+            <button
+              onClick={isListening ? stopListening : startListening}
+              disabled={isLoading || !recognition}
+              className={`absolute right-2 top-2 p-2 rounded-lg transition-colors ${
+                isListening 
+                  ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              title={isListening ? 'Stop listening' : 'Start voice input'}
+            >
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+          </div>
+          
           <Button
             onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isLoading || isTranslating}
             size="icon"
             className="h-11 w-11 bg-primary hover:bg-primary/90 flex-shrink-0"
           >
-            <Send className="w-4 h-4" />
+            {isLoading || isTranslating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </Button>
         </div>
       </div>

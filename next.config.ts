@@ -3,7 +3,7 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
   images: {
-    domains: ['www.pexels.com', 'source.unsplash.com', 'images.unsplash.com', 'cdn.pixabay.com'],
+    domains: ['www.pexels.com', 'source.unsplash.com', 'images.unsplash.com', 'cdn.pixabay.com', 'img.clerk.com'],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60,
   },
