@@ -192,7 +192,7 @@ export const TripProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           tripData: tripData,
           includeRealTimeData: true,
           optimizeForBudget: true,
-          includeAccessibility: tripData.preferences?.accessibility?.length > 0,
+          includeAccessibility: (tripData.preferences?.accessibility?.length || 0) > 0,
         }),
       })
 
@@ -209,8 +209,23 @@ export const TripProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             },
           },
           locationData: {
-            ...tripData.locationData,
-            ...result.locationData,
+            attractions: result.locationData?.attractions || [],
+            cuisine: result.locationData?.cuisine || [],
+            culture: result.locationData?.culture || {
+              languages: [],
+              currency: 'USD',
+              timezone: 'UTC',
+              tips: [],
+              safetyInfo: [],
+              localCustoms: [],
+            },
+            images: result.locationData?.images || [],
+            virtualTourData: result.locationData?.virtualTourData || {
+              locations: [],
+            },
+            hotels: result.locationData?.hotels || [],
+            flights: result.locationData?.flights || [],
+            emergencyContacts: result.locationData?.emergencyContacts,
           },
           smartRecommendations: result.recommendations,
           status: 'planning',

@@ -24,12 +24,12 @@ export async function GET(req: NextRequest) {
 
     // In a real implementation, you would check the payment status with Lygos API
     // For now, we'll simulate different statuses
-    const mockStatuses = ['pending', 'completed', 'failed']
+    const mockStatuses: ('pending' | 'completed')[] = ['pending', 'completed']
     const randomStatus = mockStatuses[Math.floor(Math.random() * mockStatuses.length)]
 
     // Simulate payment completion after some time
     const shouldComplete = Math.random() > 0.7 // 30% chance of completion
-    const status = shouldComplete ? 'completed' : 'pending'
+    const status: 'pending' | 'completed' = shouldComplete ? 'completed' : 'pending'
 
     let message = ''
     switch (status) {
@@ -39,9 +39,6 @@ export async function GET(req: NextRequest) {
         break
       case 'completed':
         message = 'Payment successful! Your subscription is now active.'
-        break
-      case 'failed':
-        message = 'Payment failed. Please try again.'
         break
     }
 

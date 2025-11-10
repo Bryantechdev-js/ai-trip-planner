@@ -24,7 +24,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     user && CreateNewUser()
-    setUserDetails(user)
+    setUserDetails(user || {})
   }, [user])
 
   return (
