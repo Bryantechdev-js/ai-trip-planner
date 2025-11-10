@@ -21,11 +21,24 @@ const Contact = () => {
     setIsSubmitting(true)
 
     try {
-      // Simulate form submission
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      setSubmitStatus('success')
-      setFormData({ name: '', email: '', subject: '', message: '', category: 'general' })
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        setSubmitStatus('success')
+        setFormData({ name: '', email: '', subject: '', message: '', category: 'general' })
+      } else {
+        throw new Error(result.message || 'Failed to send message')
+      }
     } catch (error) {
+      console.error('Contact form error:', error)
       setSubmitStatus('error')
     } finally {
       setIsSubmitting(false)
