@@ -31,12 +31,17 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 interface TripDetailPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 const TripDetailPage = ({ params }: TripDetailPageProps) => {
+  const [tripId, setTripId] = React.useState<string | null>(null)
+  
+  React.useEffect(() => {
+    params.then(p => setTripId(p.id))
+  }, [params])
   const router = useRouter()
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
@@ -44,11 +49,11 @@ const TripDetailPage = ({ params }: TripDetailPageProps) => {
     'overview'
   )
 
-  const trip = useQuery(api.trips.getTripById, {
-    tripId: params.id as Id<'TripTable'>,
-  })
+  const trip = useQuery(api.trips.getTripById, tripId ? {
+    tripId: tripId as Id<'TripTable'>,
+  } : 'skip')
 
-  if (!trip) {
+  if (!tripId || !trip) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

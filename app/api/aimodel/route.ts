@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { aj } from '../arcjet/route'
-import { currentUser } from '@clerk/nextjs/server'
 
 const prompt = `You are a PROFESSIONAL TRAVEL AGENCY AI CONSULTANT representing "DreamTrip Adventures" - a premium travel planning service. You are an expert travel advisor with 15+ years of experience helping clients create unforgettable journeys.
 

@@ -6,7 +6,7 @@ import { auth } from '@clerk/nextjs/server'
 const isDevelopment = process.env.NODE_ENV === 'development'
 const DISABLE_RATE_LIMITING = process.env.DISABLE_RATE_LIMITING === 'true'
 
-export const aj = arcjet({
+const aj = arcjet({
   key: process.env.ARCJET_KEY!, // Get your site key from https://app.arcjet.com
   rules: [
     // Create a token bucket rate limit. Other algorithms are supported.

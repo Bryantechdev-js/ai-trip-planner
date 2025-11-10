@@ -213,12 +213,12 @@ export class HealthChecker {
       // Check Convex connection
       const response = await fetch(`${process.env.NEXT_PUBLIC_CONVEX_URL}/api/ping`, {
         method: 'GET',
-        timeout: 5000,
       })
       
+      const status: 'healthy' | 'unhealthy' = response.ok ? 'healthy' : 'unhealthy'
       return {
         service: 'database',
-        status: response.ok ? 'healthy' : 'unhealthy',
+        status,
         responseTime: Date.now() - start,
         lastChecked: new Date().toISOString(),
       }
@@ -245,12 +245,12 @@ export class HealthChecker {
         try {
           const response = await fetch(check.url, {
             method: 'GET',
-            timeout: 5000,
           })
           
+          const status: 'healthy' | 'degraded' = response.ok ? 'healthy' : 'degraded'
           return {
             service: check.name,
-            status: response.ok ? 'healthy' : 'degraded' as const,
+            status,
             responseTime: Date.now() - start,
             lastChecked: new Date().toISOString(),
           }
@@ -266,16 +266,18 @@ export class HealthChecker {
       })
     )
 
-    return results.map((result, index) => 
-      result.status === 'fulfilled' 
-        ? result.value 
-        : {
-            service: checks[index].name,
-            status: 'unhealthy' as const,
-            error: 'Health check failed',
-            lastChecked: new Date().toISOString(),
-          }
-    )
+    return results.map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return result.value
+      } else {
+        return {
+          service: checks[index].name,
+          status: 'unhealthy' as const,
+          error: 'Health check failed',
+          lastChecked: new Date().toISOString(),
+        }
+      }
+    })
   }
 
   async getSystemHealth(): Promise<{

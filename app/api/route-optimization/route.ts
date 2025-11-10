@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
         totalDistance: Math.round(totalDistance * 100) / 100,
         estimatedTime: Math.round(estimatedTime),
         travelMode,
-        optimizedFor,
+        optimizeFor,
       },
       directions,
       costEstimation,

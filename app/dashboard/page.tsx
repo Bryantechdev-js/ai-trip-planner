@@ -1,9 +1,13 @@
 'use client'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 import React, { useState, useEffect } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -32,7 +36,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 interface Trip {
-  _id: string
+  _id: Id<"TripTable">
   destination: string
   sourceLocation?: string
   duration: number
@@ -113,10 +117,10 @@ const Dashboard = () => {
     router.push('/create-trip')
   }
 
-  const handleDeleteTrip = async (tripId: string) => {
+  const handleDeleteTrip = async (tripId: Id<"TripTable">) => {
     if (confirm('Are you sure you want to delete this trip?')) {
       try {
-        await deleteTrip({ tripId })
+        await deleteTrip({ tripId: tripId as Id<"TripTable"> })
         setNotification({ type: 'success', message: 'Trip deleted successfully' })
       } catch (error) {
         setNotification({ type: 'error', message: 'Failed to delete trip' })
