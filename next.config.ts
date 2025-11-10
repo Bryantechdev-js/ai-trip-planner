@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: __dirname,
   images: {
     domains: ['www.pexels.com', 'source.unsplash.com', 'images.unsplash.com', 'cdn.pixabay.com'],
     formats: ['image/webp', 'image/avif'],
@@ -9,8 +10,6 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: false,
-  output: 'standalone',
-  swcMinify: true,
   async headers() {
     return [
       {

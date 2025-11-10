@@ -1,5 +1,8 @@
 'use client'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 import React, { useState, useEffect, useRef } from 'react'
 import {
   MapPin,
@@ -96,9 +99,8 @@ const TrackingPage = () => {
 
   const getNetworkInfo = () => {
     try {
-      // @ts-ignore
-      const connection =
-        navigator.connection || navigator.mozConnection || navigator.webkitConnection
+      const nav = navigator as any
+      const connection = nav.connection || nav.mozConnection || nav.webkitConnection
       if (connection) {
         setNetworkInfo({
           type: connection.effectiveType,

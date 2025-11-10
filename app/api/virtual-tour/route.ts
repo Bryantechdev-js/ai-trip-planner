@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       virtualTourData.landmarks = virtualTourData.landmarks.slice(0, 2)
       virtualTourData.tourDuration = Math.min(virtualTourData.tourDuration, 60)
     } else if (tourType === 'detailed') {
-      virtualTourData.extendedInfo = {
+      (virtualTourData as any).extendedInfo = {
         culturalNotes: `Learn about the rich culture and traditions of ${destination}`,
         historicalContext: `Discover the fascinating history that shaped ${destination}`,
         localTips: [
@@ -104,7 +104,7 @@ async function fetchVirtualTourData(destination: string) {
           image: realImages[0],
           video: destinationVideos[0],
           interestingVideo: interestingContent.videos[0],
-          liveExperience: liveExperiences[0],
+          liveExperience: await fetchLiveExperiences(destination).then(exp => exp[0]),
         },
         highlights: {
           mostViewed: destinationVideos.sort((a, b) => b.viewCount - a.viewCount)[0],

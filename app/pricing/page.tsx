@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import {
   Check,
   Star,
@@ -19,7 +19,10 @@ import { PaymentStatusIndicator } from '@/components/ui/payment-status-indicator
 import { useUser } from '@clerk/nextjs'
 import { useSearchParams } from 'next/navigation'
 
-const PricingPage = () => {
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
+const PricingContent = () => {
   const { user } = useUser()
   const searchParams = useSearchParams()
   const [selectedPlan, setSelectedPlan] = useState<string>('')
@@ -614,6 +617,21 @@ const PricingPage = () => {
         </div>
       </div>
     </div>
+  )
+}
+
+const PricingPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading pricing plans...</p>
+        </div>
+      </div>
+    }>
+      <PricingContent />
+    </Suspense>
   )
 }
 

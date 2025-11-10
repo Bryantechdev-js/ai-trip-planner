@@ -87,7 +87,11 @@ const TripMapUI = ({ source, destination, onContinue }: TripMapUIProps) => {
         // Clear the map container
         if (mapRef.current) {
           mapRef.current.innerHTML = ''
-          mapRef.current._leaflet_id = null
+          // Clear leaflet id if it exists
+          const container = mapRef.current as any
+          if (container._leaflet_id) {
+            delete container._leaflet_id
+          }
         }
 
         const L = await import('leaflet')
@@ -104,7 +108,8 @@ const TripMapUI = ({ source, destination, onContinue }: TripMapUIProps) => {
         })
 
         // Check if container is already initialized
-        if (mapRef.current._leaflet_id) {
+        const container = mapRef.current as any
+        if (container._leaflet_id) {
           return
         }
 

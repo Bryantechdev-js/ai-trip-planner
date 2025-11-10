@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     console.error('News API Error:', error)
-    return NextResponse.json(getMockNewsData(destination))
+    return NextResponse.json(getMockNewsData('Unknown Destination'))
   }
 }
 

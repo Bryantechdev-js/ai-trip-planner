@@ -85,8 +85,10 @@ export async function POST(req: NextRequest) {
 
     // Update user profile in database
     await convex.mutation(api.CreateNewUser.UpdateUserProfile, {
-      userId: user._id,
-      aiProfile: updatedProfile,
+      email: user.email,
+      updates: {
+        aiProfile: updatedProfile,
+      },
     })
 
     return NextResponse.json({
@@ -179,8 +181,10 @@ export async function PUT(req: NextRequest) {
 
     // Update user profile in database
     await convex.mutation(api.CreateNewUser.UpdateUserProfile, {
-      userId: user._id,
-      aiProfile: updatedProfile,
+      email: user.email,
+      updates: {
+        aiProfile: updatedProfile,
+      },
     })
 
     return NextResponse.json({
@@ -254,8 +258,10 @@ export async function DELETE(req: NextRequest) {
     }
 
     await convex.mutation(api.CreateNewUser.UpdateUserProfile, {
-      userId: user._id,
-      aiProfile: defaultProfile,
+      email: user.email,
+      updates: {
+        aiProfile: defaultProfile,
+      },
     })
 
     return NextResponse.json({

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(req: NextRequest) {
   try {
     const clientIP =
-      req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || req.ip || '127.0.0.1'
+      req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1'
 
     // Use a free IP geolocation service
     const response = await fetch(
