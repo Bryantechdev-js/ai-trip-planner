@@ -41,21 +41,23 @@ export async function GET(req: NextRequest) {
     console.log('Arcjet decision', decision)
 
     if (decision.isDenied()) {
+      const reason = decision.reason as any
       return NextResponse.json(
         {
           error: 'Too Many Requests',
           reason: decision.reason,
-          resetTime: decision.reason.resetTime,
-          remaining: decision.reason.remaining,
+          resetTime: reason.resetTime || null,
+          remaining: reason.remaining || 0,
         },
         { status: 429 }
       )
     }
 
+    const reason = decision.reason as any
     return NextResponse.json({
       message: 'Request allowed',
-      remaining: decision.reason.remaining,
-      resetTime: decision.reason.resetTime,
+      remaining: reason.remaining || 0,
+      resetTime: reason.resetTime || null,
     })
   } catch (error) {
     console.error('Arcjet error:', error)

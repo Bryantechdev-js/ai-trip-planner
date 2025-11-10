@@ -47,7 +47,31 @@ export async function POST(req: NextRequest) {
 
     // Save to Convex database
     const tripId = await convex.mutation(api.trips.createTrip, {
-      tripData: enhancedTripData,
+      userId,
+      destination: tripData.destination,
+      sourceLocation: tripData.sourceLocation || '',
+      groupSize: tripData.groupSize || '1',
+      budget: tripData.budget || 'medium',
+      duration: tripData.duration || 3,
+      interests: tripData.interests || [],
+      tripPlan: tripData.tripPlan || {
+        attractions: [],
+        cuisine: [],
+        culture: {
+          languages: [],
+          currency: 'USD',
+          timezone: 'UTC',
+          tips: [],
+        },
+        images: [],
+        virtualTourData: {
+          locations: [],
+        },
+      },
+      isPublic: tripData.isPublic || false,
+      coverImage: tripData.coverImage,
+      galleryImages: tripData.galleryImages,
+      videos: tripData.videos,
     })
 
     // Set up automated monitoring
@@ -89,8 +113,7 @@ export async function GET(req: NextRequest) {
     if (tripId) {
       // Get specific trip
       const trip = await convex.query(api.trips.getTripById, {
-        tripId,
-        userId,
+        tripId: tripId as any,
       })
 
       return NextResponse.json({ trip })
@@ -132,11 +155,9 @@ export async function PUT(req: NextRequest) {
 
     // Update trip with automation
     const updatedTrip = await convex.mutation(api.trips.updateTrip, {
-      tripId,
-      userId,
+      tripId: tripId as any,
       updates: {
         ...updates,
-        updatedAt: new Date().toISOString(),
       },
     })
 
@@ -182,7 +203,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Delete trip and cleanup automation
-    await convex.mutation(api.trips.deleteTrip, { tripId, userId })
+    await convex.mutation(api.trips.deleteTrip, { tripId: tripId as any })
     await cleanupAutomatedMonitoring(tripId)
 
     return NextResponse.json({

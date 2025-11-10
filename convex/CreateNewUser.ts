@@ -84,3 +84,75 @@ export const updateUserSubscription = mutation({
     return await ctx.db.get(user._id)
   },
 })
+
+export const GetUserByEmail = query({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('UserTable')
+      .filter(q => q.eq(q.field('email'), args.email))
+      .first()
+    return user
+  },
+})
+
+export const UpdateUserProfile = mutation({
+  args: {
+    email: v.string(),
+    updates: v.object({
+      aiProfile: v.optional(
+        v.object({
+          travelPreferences: v.object({
+            budgetRange: v.string(),
+            preferredDestinations: v.array(v.string()),
+            travelStyle: v.string(),
+            groupSizePreference: v.string(),
+          }),
+          learningData: v.optional(
+            v.object({
+              completedTrips: v.number(),
+              favoriteActivities: v.array(v.string()),
+              avgTripDuration: v.number(),
+              preferredBudgetRange: v.string(),
+            })
+          ),
+        })
+      ),
+      emergencyContacts: v.optional(
+        v.array(
+          v.object({
+            name: v.string(),
+            phone: v.string(),
+            email: v.optional(v.string()),
+            relationship: v.string(),
+          })
+        )
+      ),
+      trackingPreferences: v.optional(
+        v.object({
+          allowGPS: v.boolean(),
+          allowWiFi: v.boolean(),
+          allowSIM: v.boolean(),
+          allowBluetooth: v.boolean(),
+          emergencyMode: v.boolean(),
+          shareWithContacts: v.boolean(),
+        })
+      ),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query('UserTable')
+      .filter(q => q.eq(q.field('email'), args.email))
+      .first()
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    await ctx.db.patch(user._id, args.updates)
+    return await ctx.db.get(user._id)
+  },
+})

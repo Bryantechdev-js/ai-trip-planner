@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 
 const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
@@ -13,7 +13,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
 ])
 
-export default clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware(async (auth, req: NextRequest) => {
   const { userId } = await auth()
 
   // If user is not authenticated and trying to access protected route

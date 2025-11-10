@@ -6,10 +6,15 @@ on:
   pull_request:
     branches: [main, ai-trip-planner]
 
+env:
+  NODE_VERSION: '18'
+  FORCE_COLOR: 1
+
 jobs:
   lint-and-format:
     name: Lint and Prettier Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout Repository
@@ -18,11 +23,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+        run: npm ci --prefer-offline --no-audit
 
       - name: Run ESLint
         run: npm run lint
